@@ -758,3 +758,11 @@ a {
   font-size: 16px;
   margin: 4px 8px;
 }
+
+      .sidebar {
+        width: 20%;
+      }
+      .main-container {
+        margin-left: 20%;
+      }
+    
