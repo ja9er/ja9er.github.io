@@ -766,3 +766,7 @@ a {
         margin-left: 20%;
       }
     
+      .post-item .right .feature-container {
+        border-radius: 2px;
+      }
+    
