@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>从漏洞预警到POC实现 | Ja9er&#39;s Stuido</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://ja9er.github.io/favicon.ico?v=1642068575695">
+<link rel="stylesheet" href="https://ja9er.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="从漏洞预警到POC实现
+0X01 人生是一个摆满餐具的茶几
+2021年7月13日网信办发文。9月1日落地
+
+1、不得发布或者提供专门用于利用网络产品安全漏洞从事危害网络安全活动的程序和工具。
+2、在国家举办重大活动期间，未经公安部同意，不得..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://ja9er.github.io">
+        <img src="https://ja9er.github.io/images/avatar.png?v=1642068575695" class="site-logo">
+        <h1 class="site-title">Ja9er&#39;s Stuido</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      温故而知新
+    </div>
+    <div class="site-footer">
+       | <a class="rss" href="https://ja9er.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">从漏洞预警到POC实现</h2>
+            <div class="post-date">2022-01-13</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="从漏洞预警到poc实现">从漏洞预警到POC实现</h1>
+<h2 id="0x01-人生是一个摆满餐具的茶几">0X01 人生是一个摆满餐具的茶几</h2>
+<p>2021年7月13日网信办发文。9月1日落地</p>
+<blockquote>
+<p>1、不得发布或者提供专门用于利用网络产品安全漏洞从事危害网络安全活动的程序和工具。</p>
+<p>2、在国家举办重大活动期间，未经公安部同意，不得擅自发布网络产品安全漏洞信息。</p>
+<p>3、不得将未公开的网络产品安全漏洞信息向网络产品提供者之外的境外组织或者个人提供。</p>
+</blockquote>
+<p>总结来说就是不要乱发漏洞EXP和POC，网上的文库和师傅一夜之间跑路大半。属于是脚本小子の大末日了。</p>
+<p>那么，作为一个菜鸡，要怎么在茫茫网海中扩充自己的武器库呢</p>
+<h2 id="0x02-简单讲讲一个思路">0X02 简单讲讲一个思路</h2>
+<p><strong>CNVD,WangAn等漏洞平台</strong></p>
+<p>这些平台都会预警某某系统存在某某漏洞，仔细找找就能发现惊喜<br>
+<a href="https://imgtu.com/i/f0SrTS"><img src="https://z3.ax1x.com/2021/08/12/f0SrTS.png" alt="f0SrTS.png" loading="lazy"></a><br>
+<a href="https://imgtu.com/i/f0S6YQ"><img src="https://z3.ax1x.com/2021/08/12/f0S6YQ.png" alt="f0S6YQ.png" loading="lazy"></a></p>
+<h2 id="0x03-简单的实现">0X03 简单的实现</h2>
+<p>这里我们随便点一个进去，可以看到是一个未授权访问的漏洞，并且影响产品给出了一个很详细信息<br>
+<a href="https://imgtu.com/i/f0SDw8"><img src="https://z3.ax1x.com/2021/08/12/f0SDw8.png" alt="f0SDw8.png" loading="lazy"></a><br>
+接下来就是想想怎么复现它了，首先搜了搜同系统的名字发现还有弱口令<br>
+<a href="https://imgtu.com/i/f0SBef"><img src="https://z3.ax1x.com/2021/08/12/f0SBef.png" alt="f0SBef.png" loading="lazy"></a><br>
+这波啊，这波是稳稳地幸福！我们直接fofa见好伐。</p>
+<blockquote>
+<p>FOFA 是白帽汇推出的一款网络空间资产搜索引擎。它能够帮助用户迅速进行网络资产匹配、加快后续工作进程。例如进行漏洞影响范围分析、应用分布统计、应用流行度排名统计等。<br>
+简单理解就是，一个本土加强版shodan，知道某产品在互联网的部署情况、获取一个根域名所有子域名网站、根据IP确认企业、根据一个子域名网站找到跟他在一个IP的其他网站、全网漏洞扫描、一个新的漏洞全网的影响范围。</p>
+</blockquote>
+<p>简单来说，fofa就是一个IP PLUS+++版本的谷歌。我们可以利用它寻找到具有相同网页结构特征的网站，也就是我们可以构造指纹来发现相同的系统。</p>
+<p>首先建议使用<code>body=&quot;xxxxx系统&quot;</code>或者<code>title=&quot;xxx系统&quot;</code>来找到目标系统，然后观察该网站的结构细化指纹进而获取到全网的站点</p>
+<p>搜索结果如下<br>
+<a href="https://imgtu.com/i/f0SyFg"><img src="https://z3.ax1x.com/2021/08/12/f0SyFg.png" alt="f0SyFg.png" loading="lazy"></a><br>
+随便找个站点点进去，观察一下网页结构，我们继续细化指纹<br>
+<a href="https://imgtu.com/i/f0ScWj"><img src="https://z3.ax1x.com/2021/08/12/f0ScWj.png" alt="f0ScWj.png" loading="lazy"></a><br>
+然后尝试弱口令登录，试了几个站进了后台<br>
+<a href="https://imgtu.com/i/f0S2Ss"><img src="https://z3.ax1x.com/2021/08/12/f0S2Ss.png" alt="f0S2Ss.png" loading="lazy"></a><br>
+这时候回到刚开始的漏洞预警，<code>未授权访问获取敏感信息</code>，就往这个方向进行黑盒测试</p>
+<p>抓包测试发现还是有session验证的<br>
+<a href="https://imgtu.com/i/f0SRln"><img src="https://z3.ax1x.com/2021/08/12/f0SRln.png" alt="f0SRln.png" loading="lazy"></a><br>
+不过发现一个点具有导出功能，导出的文件保存在网站的路径下<br>
+<a href="https://imgtu.com/i/f0SfO0"><img src="https://z3.ax1x.com/2021/08/12/f0SfO0.png" alt="f0SfO0.png" loading="lazy"></a><br>
+这时候直接访问该路径，发现可以访问，然后回退目录顺利的发现了一个列目录漏洞<br>
+<a href="https://imgtu.com/i/f0SWyq"><img src="https://z3.ax1x.com/2021/08/12/f0SWyq.png" alt="f0SWyq.png" loading="lazy"></a><br>
+photo路径下存在大量的人脸照片，清除cookie测试是否存在未授权<br>
+<a href="https://imgtu.com/i/f0S4mV"><img src="https://z3.ax1x.com/2021/08/12/f0S4mV.png" alt="f0S4mV.png" loading="lazy"></a><br>
+<a href="https://imgtu.com/i/f0S5wT"><img src="https://z3.ax1x.com/2021/08/12/f0S5wT.png" alt="f0S5wT.png" loading="lazy"></a></p>
+<h2 id="0x04-poc">0x04 POC</h2>
+<p>如果自己没有开发扫描器的话，建议还是按照POCSUITE3格式写</p>
+<p>Github 地址 : https://github.com/knownsec/pocsuite3</p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://ja9er.github.io/post/yi-ci-cong-wei-shou-quan-kai-shi-de-yan-jiu/">
+                  <h3 class="post-title">
+                    一次从未授权开始的研究
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

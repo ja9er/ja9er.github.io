@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>CMSEASY-从黑盒到代码审计 | Ja9er&#39;s Stuido</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://ja9er.github.io/favicon.ico?v=1642068575695">
+<link rel="stylesheet" href="https://ja9er.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="0x01 开始的故事
+中秋时节，秋高气爽，正是日(划)站(水)的好日子,刚好学习一波。
+官网更新历史版本观察
+
+两个版本都下
+使用beyond compare diff 文件内容
+结果发现并没有diff出什么内容来
+
+索性还是黑盒测一波吧
+..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://ja9er.github.io">
+        <img src="https://ja9er.github.io/images/avatar.png?v=1642068575695" class="site-logo">
+        <h1 class="site-title">Ja9er&#39;s Stuido</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      温故而知新
+    </div>
+    <div class="site-footer">
+       | <a class="rss" href="https://ja9er.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">CMSEASY-从黑盒到代码审计</h2>
+            <div class="post-date">2022-01-13</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="0x01-开始的故事">0x01 开始的故事</h1>
+<p><strong>中秋时节，秋高气爽，正是日(划)站(水)的好日子,刚好学习一波。</strong><br>
+官网更新历史版本观察<br>
+<img src="https://forum.ywhack.com/attachments/month_2109/2109181641160a30fdc89fa651.png" alt="" loading="lazy"><br>
+两个版本都下<br>
+使用beyond compare diff 文件内容<br>
+结果发现并没有diff出什么内容来<br>
+<img src="https://forum.ywhack.com/attachments/month_2109/21091816434e138746e1aefb18.png" alt="" loading="lazy"><br>
+索性还是黑盒测一波吧<br>
+看了看测出三个问题:</p>
+<ul>
+<li><strong>sql</strong></li>
+<li><strong>代码执行</strong></li>
+<li><strong>越权</strong></li>
+</ul>
+<hr>
+<h1 id="0x02-看看越权">0x02 看看越权</h1>
+<p>admin 超级管理员<br>
+test  游客</p>
+<figure data-type="image" tabindex="1"><img src="https://z3.ax1x.com/2021/09/22/4N7lnJ.png" alt="4N7lnJ.png" loading="lazy"></figure>
+<p><strong>test</strong>用户无权登录后台</p>
+<figure data-type="image" tabindex="2"><img src="https://z3.ax1x.com/2021/09/22/4N7u1U.png" alt="4N7u1U.png" loading="lazy"></figure>
+<p>用test的cookie添加内容</p>
+<figure data-type="image" tabindex="3"><img src="https://z3.ax1x.com/2021/09/22/4N71B9.png" alt="4N71B9.png" loading="lazy"></figure>
+<p>看到这里添加成功</p>
+<figure data-type="image" tabindex="4"><img src="https://z3.ax1x.com/2021/09/22/4N7MX4.png" alt="4N7MX4.png" loading="lazy"></figure>
+<hr>
+<p>展开讲讲：</p>
+<p>add_action()鉴权只明确了是否存在该用户，并未对用户权限做限制<br>
+<img src="https://z3.ax1x.com/2021/09/22/4N7ju4.png" alt="4N7ju4.png" loading="lazy"><br>
+<img src="https://z3.ax1x.com/2021/09/22/4NHSER.png" alt="4NHSER.png" loading="lazy"></p>
+<hr>
+<h1 id="0x03-代码执行代码执行">0x03 代码执行！代码执行！</h1>
+<p>内容管理模块，创建内容修改包内为PHPINFO<br>
+<img src="https://z3.ax1x.com/2021/09/22/4N7KcF.png" alt="4N7KcF.png" loading="lazy"><br>
+<img src="https://z3.ax1x.com/2021/09/22/4N737R.png" alt="4N737R.png" loading="lazy"><br>
+<strong>分析</strong><br>
+<strong>先摆结论:</strong></p>
+<p>insert语句拼接时使用**.=**连接以及没有过滤好，是造成这个漏洞的原因</p>
+<p>最后insert语句为:</p>
+<pre><code class="language-sql">INSERT INTO `cmseasy_archive`(`checked`,`catid`,`title`,`color`,`langid`,`mtitle`,`keyword`,`description`,`tag`,`htmlrule`,`set_htmlrule`,`thumb`,`attachment_path`,`attachment_id`,`typeid`,`spid`,`subtitle`,`template`,`templatewap`,`nofollow`,`toppost`,`showform`,`introduce`,`adddate`,`updatedate`,`outtime`,`author`,`attr3`,`view`,`linkto`,`province_id`,`city_id`,`section_id`,`content`,`username`,`userid`,`strong`,`pics`,`attr1`,`introduce_len`,`type`,`state`,`listorder`,`readmenoy`,`domwmenoy`) VALUES ('1','1','phpinfo','#000000','1','','','','','','','','','','0','0','','0','0','0','0','0','','2021-09-18 11:23:13','2021-09-18 11:23:13','','admin','','','','0','0','0','&lt;?PHP PHPINFO();?&gt;','admin','1','0','N;','','0','','1','0','0','0')
+</code></pre>
+<figure data-type="image" tabindex="5"><img src="https://z3.ax1x.com/2021/09/22/4N7BBd.png" alt="4N7BBd.png" loading="lazy"></figure>
+<p>从路由开始跟踪:</p>
+<p>index.php下</p>
+<p>$front-&gt;dispatch();根据参数中的值分配路由</p>
+<pre><code class="language-php">try{
+    $front = new front();
+    $front-&gt;dispatch();
+}catch(HttpErrorException $e){
+    if(config::get('custom404') &amp;&amp; $e-&gt;statusCode == 404){
+        header('location: /404.php');
+    }else{
+        exit($e-&gt;statusCode.':'.$e-&gt;getMessage());
+    }
+}
+</code></pre>
+<p>断点进去看看</p>
+<figure data-type="image" tabindex="6"><img src="https://z3.ax1x.com/2021/09/22/4N7sAI.png" alt="4N7sAI.png" loading="lazy"></figure>
+<p>可以看到front类就是index页面下调用的类，$case的值如下</p>
+<pre><code class="language-php">$case = self::$case . (self::$admin &amp;&amp; self::$case &lt;&gt; 'admin' &amp;&amp; self::$case &lt;&gt; 'install' ? '_admin' : '_act');
+</code></pre>
+<p>self::$case在_construct()内获取也就是初始化的时候获取，若存在case则进入该路由，如果没有则返回index</p>
+<p><img src="https://z3.ax1x.com/2021/09/22/4N764P.png" alt="4N764P.png" loading="lazy"><br>
+<img src="https://z3.ax1x.com/2021/09/22/4N7yNt.png" alt="4N7yNt.png" loading="lazy"></p>
+<p>同时在__constructc中获取参数</p>
+<figure data-type="image" tabindex="7"><img src="https://z3.ax1x.com/2021/09/22/4N7238.png" alt="4N7238.png" loading="lazy"></figure>
+<p>daddslashes()函数作为过滤函数，将输入的参数实体化</p>
+<pre><code class="language-php">if (!function_exists('daddslashes')) {
+    function daddslashes($string, $force = 1)
+    {
+        if (is_array($string)) {
+            $keys = array_keys($string);
+            foreach ($keys as $key) {
+                $val = $string[$key];
+                unset($string[$key]);
+                $string[addslashes($key)] = daddslashes($val, $force);
+            }
+        }
+        else {
+            $string = htmlspecialchars(addslashes(trim($string)), ENT_QUOTES);
+            if (!front::$isadmin || (front::$case == 'admin' &amp;&amp; front::$act == 'login')) {
+                front::check_type($string, 'safe');
+                if (inject_check($string)) {
+                    //var_dump($string);
+                    event::log('inject', $string);
+                    echo $string;exit;
+
+                }
+
+            }
+            if (preg_match('/^data:(.*?)/is', $string)) {
+                exit('data:');
+            }
+        }
+        return $string;
+    }
+</code></pre>
+<p>此时传入的<code>&lt;?php phpinfo();?&gt;</code>已经变成<code>&lt;?php phpinfo();?&gt;</code><br>
+接下来在index.php中调用dispatch()方法</p>
+<pre><code class="language-php"> function dispatch()
+    {
+        $case = self::$case . (self::$admin &amp;&amp; self::$case &lt;&gt; 'admin' &amp;&amp; self::$case &lt;&gt; 'install' ? '_admin' : '_act');
+        if (!class_exists($case)) {
+            throw new HttpErrorException(404, lang('page_does_not_exist'), 404);
+        } else {
+            $method = self::$act . '_action';
+            $case = new $case();
+            $case-&gt;init();
+            if (method_exists($case, $method))
+                $case-&gt;$method();
+            else
+                throw new HttpErrorException(404, lang('page_does_not_exist'), 404);
+            $case-&gt;end();
+            //var_dump(get_class($case));
+            if (get_class($case) != 'install_act' &amp;&amp; get_class($case) != 'crontab_act') {
+
+                if(config::get('site_push')) {
+                    $last = @file_get_contents(ROOT . '/cache/data/xiongzhang.log');
+                    if(!$last || $last &lt; date('Y-m-d')){
+                        $site = getSiteUrl() . '/index.php?case=crontab&amp;act=xiongzhang';
+                        $site .= &quot;&amp;token=&quot;.config::get('cookie_password');
+                        _sock($site);
+                    }
+                }
+                //var_dump($site);
+                $this-&gt;autocleanstats();//自动清楚蜘蛛记录
+                $this-&gt;autobakdatabase();//自动备份数据库
+                $this-&gt;doarchivetimeout();//处理过期新闻
+                $this-&gt;autocreatehtml();//自动生成HTML
+                $this-&gt;automap(); //自动生成百度谷歌地图
+            }
+        }
+    }
+</code></pre>
+<p>可以观察到$case实例化后，method_exists判断有无传入的方法，然后直接执行该方法</p>
+<p>这里传递参数为<strong>act=add</strong></p>
+<figure data-type="image" tabindex="8"><img src="https://z3.ax1x.com/2021/09/22/4N74Bj.png" alt="4N74Bj.png" loading="lazy"></figure>
+<p>所以应该执行<strong>add_action</strong>函数。</p>
+<p>进入函数内部后发现<strong>add_action</strong>函数内使用save_before函数对fron::$get参数进行处理</p>
+<figure data-type="image" tabindex="9"><img src="https://z3.ax1x.com/2021/09/22/4N7740.png" alt="4N7740.png" loading="lazy"></figure>
+<p>而save_before也就是造成这个漏洞的最终原因之一，很神奇的他又把实例化的字符解码回去了。</p>
+<p>突出两个字</p>
+<p><strong>神奇</strong></p>
+<figure data-type="image" tabindex="10"><img src="https://z3.ax1x.com/2021/09/22/4N7OvF.png" alt="4N7OvF.png" loading="lazy"></figure>
+<figure data-type="image" tabindex="11"><img src="https://z3.ax1x.com/2021/09/22/4N7LgU.png" alt="4N7LgU.png" loading="lazy"></figure>
+<p>剩下的就是在add_action中调用插入数据库操作，一路跟跟跟跟，跟到最后的sql_insert发现使用**.=**连接参数</p>
+<figure data-type="image" tabindex="12"><img src="https://z3.ax1x.com/2021/09/22/4N7bCV.png" alt="4N7bCV.png" loading="lazy"></figure>
+<figure data-type="image" tabindex="13"><img src="https://z3.ax1x.com/2021/09/22/4N7q3T.png" alt="4N7q3T.png" loading="lazy"></figure>
+<figure data-type="image" tabindex="14"><img src="https://z3.ax1x.com/2021/09/22/4N7xb9.png" alt="4N7xb9.png" loading="lazy"></figure>
+<hr>
+<p>除了这个点之外，edit_action也用到savebefore。所以只要路由中带有<strong>act=edit</strong>和<strong>act=add</strong>的参数的都存在代码执行漏洞</p>
+<h1 id="0x04-sql你为什么报错">0x04 SQL,你为什么报错!</h1>
+<p>POC:</p>
+<pre><code class="language-sql">/index.php?case=table&amp;act=edit&amp;table=archive&amp;catid=16&amp;admin_dir=admin&amp;site=default&amp;username=&amp;url=&amp;isvisual=&amp;aid=&amp;dfile=&amp;page=1&amp;id=999
+</code></pre>
+<p>注入点 在id=999</p>
+<p>内置过滤，暂时无法利用</p>
+<figure data-type="image" tabindex="15"><img src="https://z3.ax1x.com/2021/09/22/4N7GA1.png" alt="4N7GA1.png" loading="lazy"></figure>
+<p>首先打印所有sql语句</p>
+<figure data-type="image" tabindex="16"><img src="https://z3.ax1x.com/2021/09/22/4N7Jtx.png" alt="4N7Jtx.png" loading="lazy"></figure>
+<p>观察到报错点</p>
+<figure data-type="image" tabindex="17"><img src="https://z3.ax1x.com/2021/09/22/4N7acD.png" alt="4N7acD.png" loading="lazy"></figure>
+<p>报错的原因在于catid为空</p>
+<figure data-type="image" tabindex="18"><img src="https://z3.ax1x.com/2021/09/22/4N7Yh6.png" alt="4N7Yh6.png" loading="lazy"></figure>
+<p>aid=999时查询到结果为空</p>
+<figure data-type="image" tabindex="19"><img src="https://z3.ax1x.com/2021/09/22/4N7N9K.png" alt="4N7N9K.png" loading="lazy"></figure>
+<p>实际上在执行</p>
+<pre><code class="language-sql">SELECT *,my_field,my_tagone,my_shopping_model,my_shopping_color FROM `cmseasy_archive`  WHERE `aid`='999' and (state IS NULL or state&lt;&gt;'-1')  ORDER BY 1 desc LIMIT 1;
+</code></pre>
+<p>后直接取值获取catid的值</p>
+<figure data-type="image" tabindex="20"><img src="https://z3.ax1x.com/2021/09/22/4N7U1O.png" alt="4N7U1O.png" loading="lazy"></figure>
+<p>但是cms中内置了过滤，且对URL中的特殊符号做了处理，无法绕过。</p>
+<figure data-type="image" tabindex="21"><img src="https://z3.ax1x.com/2021/09/22/4N70nH.png" alt="4N70nH.png" loading="lazy"></figure>
+<p>所以虽然存在注入点但是无法利用........................</p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://ja9er.github.io/post/cong-lou-dong-yu-jing-dao-poc-shi-xian/">
+                  <h3 class="post-title">
+                    从漏洞预警到POC实现
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

