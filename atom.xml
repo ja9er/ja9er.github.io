@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ja9er.github.io</id>
-    <title>Ja9er&apos;s Stuido</title>
-    <updated>2022-01-13T10:13:54.416Z</updated>
+    <title>Ja9er&apos;s Studio</title>
+    <updated>2022-01-13T10:18:16.530Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ja9er.github.io"/>
     <link rel="self" href="https://ja9er.github.io/atom.xml"/>
-    <subtitle>温故而知新</subtitle>
+    <subtitle>燃烧掉总比消失好</subtitle>
     <logo>https://ja9er.github.io/images/avatar.png</logo>
     <icon>https://ja9er.github.io/favicon.ico</icon>
-    <rights>All rights reserved 2022, Ja9er&apos;s Stuido</rights>
+    <rights>All rights reserved 2022, Ja9er&apos;s Studio</rights>
     <entry>
         <title type="html"><![CDATA[Spring controller 内存马]]></title>
         <id>https://ja9er.github.io/post/spring-controller-nei-cun-ma/</id>
