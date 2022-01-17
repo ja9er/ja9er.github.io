@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>从验证码爆破开始的burp插件学习 | Ja9er&#39;s Studio</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://ja9er.github.io/favicon.ico?v=1642390580654">
+<link rel="stylesheet" href="https://ja9er.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="从验证码爆破开始的burp插件学习
+
+PS：仅仅作为学习,没什么用
+
+之前改了一个验证码爆破的burp插件。小改了其他师傅的代码。
+现在从头学习一下burp的插件开发，目标是实现在repeater模块的登录口自动更换实时验证码
+因为pyth..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://ja9er.github.io">
+        <img src="https://ja9er.github.io/images/avatar.png?v=1642390580654" class="site-logo">
+        <h1 class="site-title">Ja9er&#39;s Studio</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      燃烧掉总比消失好
+    </div>
+    <div class="site-footer">
+       | <a class="rss" href="https://ja9er.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">从验证码爆破开始的burp插件学习</h2>
+            <div class="post-date">2022-01-17</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="从验证码爆破开始的burp插件学习">从验证码爆破开始的burp插件学习</h1>
+<blockquote>
+<p>PS：仅仅作为学习,没什么用</p>
+</blockquote>
+<p>之前改了一个验证码爆破的burp插件。小改了其他师傅的代码。</p>
+<p>现在从头学习一下burp的插件开发，目标是实现在repeater模块的登录口自动更换实时验证码</p>
+<p>因为python开发比较方便，这里直接选python。</p>
+<h2 id="环境配置">环境配置</h2>
+<p>在extender-Options-PythonEnvironment中配置你的jython.jar文件路径</p>
+<p>py2下载burp包</p>
+<p>然后就可以愉快的开始开发了</p>
+<h2 id="实现">实现</h2>
+<p>burp提供了所有API相关<a href="https://portswigger.net/burp/extender/api/index.html">文档</a>以及开发示例<a href="https://portswigger.net/burp/extender/">demo</a></p>
+<p>之前改的脚本是爆破模块的，现在尝试改一个repeter模块的出来</p>
+<p>通过文档和demo阅读，发现所有的插件都需要继承IBurpExtender这个类</p>
+<figure data-type="image" tabindex="1"><a href="https://imgtu.com/i/7U4u6O"><img src="https://s4.ax1x.com/2022/01/17/7U4u6O.png" alt="7U4u6O.png" loading="lazy"></a></figure>
+<p>所以首先需要一个类继承他，也就是这样</p>
+<pre><code class="language-python">class BurpExtender(IBurpExtender):
+</code></pre>
+<p>IBurpExtender类默认需要registerExtenderCallbacks函数，这个函数用来注册初始化。Callback 此变量是在书写burp插件中最必不可少的变量，如果你需要调用你所导出的api的函数的话，必须要用Callback先注册一下，如下.registxxxxxx是待会儿我们调用的其他类的注册方法，这里暂时用registxxxxxx来代替</p>
+<pre><code class="language-python">class BurpExtender(IBurpExtender):
+	    def registerExtenderCallbacks(self, callbacks):
+        	# 方便一会儿调用
+       		self._callbacks = callbacks
+       		self._callbacks.registxxxxxx(self)
+            # 插件里面显示的名字
+       		callbacks.setExtensionName(&quot;OCR_CAPTCHA_repeter&quot;)
+</code></pre>
+<p>然后我们不是要找repeter模块吗，在HTTP消息处理接口类中发现IHttpListener比较符合这个选择,拦截任何burp工具发出的request和response</p>
+<figure data-type="image" tabindex="2"><a href="https://imgtu.com/i/7U4n1K"><img src="https://s4.ax1x.com/2022/01/17/7U4n1K.png" alt="7U4n1K.png" loading="lazy"></a></figure>
+<p>函数长这样</p>
+<pre><code class="language-java">processHttpMessage(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo)
+This method is invoked when an HTTP request is about to be issued, and when an HTTP response has been received.
+</code></pre>
+<p>第一个参数toolFlag判断从哪个工具传来的，这个参数在IBurpExtender初始化的callback中硬编码。如图,所以我们只需要判断是否repeater中传来就行</p>
+<figure data-type="image" tabindex="3"><a href="https://imgtu.com/i/7U4KXD"><img src="https://s4.ax1x.com/2022/01/17/7U4KXD.png" alt="7U4KXD.png" loading="lazy"></a></figure>
+<p>显然我们可以使用IHttpListener这个类了，此时代码如下,注册一个httplistener。使用<code>registerHttpListener</code></p>
+<pre><code class="language-python">class BurpExtender(IBurpExtender, IHttpListener):
+
+    def registerExtenderCallbacks(self, callbacks):
+        # 方便一会调用
+        self._callbacks = callbacks
+        self._callbacks.registerHttpListener(self)
+        #help类帮助解析数据
+        self._helpers = callbacks.getHelpers()
+        # 插件里面显示的名字
+        callbacks.setExtensionName(&quot;OCR_CAPTCHA_repeter&quot;)
+        print(&quot;init success&quot;)
+     
+</code></pre>
+<p>IHttpListener具体的实现方法在它的processHttpMessage方法中，这也是我们继承后要实现的方法，也是刚刚在文档中看到的那个方法</p>
+<figure data-type="image" tabindex="4"><a href="https://imgtu.com/i/7U4mp6"><img src="https://s4.ax1x.com/2022/01/17/7U4mp6.png" alt="7U4mp6.png" loading="lazy"></a></figure>
+<p>实现代码如下</p>
+<pre><code class="language-python">def processHttpMessage(self, toolFlag, messageIsRequest, messageInfo):
+      	#toolFlag判断从REPEATER传来请求，messageIsRequest是一个坑点需要注意，它的值为是否已经发出请求的判断。不在实现方法中判断的话会发出两次请求从而造成Request has already been issued的错误
+        if toolFlag == self._callbacks.TOOL_REPEATER and messageIsRequest==1:
+            #上面引入的help类解析传入的信息
+            analyIRequestInfo = self._helpers.analyzeRequest(messageInfo)
+            #获取整个request的内容
+            request = messageInfo.getRequest()
+            #请求body内容需要计算缓存
+            body = request[analyIRequestInfo.getBodyOffset():]
+            headers = analyIRequestInfo.getHeaders()
+            #获取request中我们自己加的header中字段内容，DDDDOCR表示请求验证码生成的url
+            DDURL = re.findall(r&quot;DDDDOCR:(.*?)\,&quot;, str(headers))
+            if len(DDURL) &gt; 0:
+                cookie = re.findall(&quot;Cookie: (.*?)\s&quot;, str(headers))[0]
+                #filed为自己定义的正则表达式，用来获取body中的验证码参数的值
+                filed = re.findall(r&quot;filed:(.*?)\,&quot;, str(headers))[0]
+                value = re.findall(filed, body.tostring())[0]#获取到验证码的值，方便后面替换
+                OCR_CAPTCHA_url = DDURL[0]
+                requestheaders = {
+                    &quot;User-Agent&quot;: &quot;Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36&quot;,
+                    &quot;Cookie&quot;: cookie}
+                request = urllib2.Request(OCR_CAPTCHA_url, headers=requestheaders)
+                ssl._create_default_https_context = ssl._create_unverified_context
+                host = ('127.0.0.1', 5000)
+                CAPTCHA = urllib2.urlopen(request)  # 获取图片
+                CAPTCHA_base64 = base64.b64encode(CAPTCHA.read())  # 把图片base64编码
+                request = urllib2.Request('http://%s:%s/base64' % host, 'base64=' + CAPTCHA_base64)
+                response = urllib2.urlopen(request).read()
+                #body.tostring()转为字符串形式，type为str和python中类型一致
+                data = str(body.tostring()).replace(value, response)
+              	#构建新的请求替换原来的请求
+                newHttpMessage = self._helpers.buildHttpMessage(headers, data)
+                messageInfo.setRequest(newHttpMessage)
+</code></pre>
+<h2 id="效果">效果</h2>
+<p>贴一个后端代码</p>
+<pre><code class="language-python">from flask import Flask
+from flask import request
+import ddddocr
+import re, time, base64
+app = Flask(__name__)
+#返回我们传的verify的值
+@app.route('/test',methods=[&quot;POST&quot;])
+def getrequest():
+    verify = request.values.get(&quot;verify&quot;)
+    return verify
+@app.route('/',methods=[&quot;GET&quot;])
+def show_image():
+    with open('static/log.txt', 'r') as f:
+        content = f.read()
+    data = '&lt;title&gt;404 NOT FOUND&lt;/title&gt;&lt;body style=&quot;text-align:center&quot;&gt;&lt;h1&gt;验证码识别&lt;/h1&gt;&lt;p&gt;&lt;TABLE style=&quot;&quot; borderColor=&quot;&quot; height=40 cellPadding=1 align=center border=20&gt;&lt;tr align=center&gt;&lt;td&gt;验证码&lt;/td&gt;&lt;td&gt;识别结果&lt;/td&gt;&lt;td&gt;时间&lt;/td&gt;&lt;/tr&gt;%s&lt;/body&gt;' % (
+        content)
+    return data
+
+@app.route('/base64',methods=[&quot;POST&quot;])
+def ocr():
+    count=5
+    try:
+        base64_img = request.values.get(&quot;base64&quot;)
+        img_name = time.time()
+        ocr = ddddocr.DdddOcr(show_ad=False)
+        base64_img =str(base64_img).replace(' ', '+')
+        img_bytes = base64.b64decode(base64_img)
+        res = ocr.classification(img_bytes)
+        with open('static/log.txt', 'r') as f:
+            data = &quot;&quot;
+            counts = 0
+            content = f.read()
+            pattern = re.compile(r'.*?\n')
+            result1 = pattern.findall(content)
+            for i in result1:
+                counts += 1
+                if counts &gt;= count: break
+                data = data + i
+        with open('static/log.txt', 'w+') as f:
+            f.write('&lt;tr align=center&gt;&lt;td&gt;&lt;img src=&quot;data:image/png;base64,%s&quot;/&gt;&lt;/td&gt;&lt;td&gt;%s&lt;/td&gt;&lt;td&gt;%s&lt;/td&gt;&lt;/tr&gt;\n' % (
+            base64_img, res, time.strftime(&quot;%Y-%m-%d %H:%M:%S&quot;, time.localtime(int(img_name)))) + data)
+
+        return res
+    except Exception as e:
+        return &quot;0000&quot;
+if __name__ == '__main__':
+    app.run()
+
+</code></pre>
+<p>随便找一个验证码生成url作为验证，可以看到返回的值是验证码图片的值，而不是request包中的1234</p>
+<figure data-type="image" tabindex="5"><a href="https://imgtu.com/i/7U4l0H"><img src="https://s4.ax1x.com/2022/01/17/7U4l0H.gif" alt="7U4l0H.gif" loading="lazy"></a></figure>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://ja9er.github.io/post/RIelZKt8X/">
+                  <h3 class="post-title">
+                    从OCR库联动burp验证码爆破
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+  <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad()
+  </script>
+
+
+
+
+
+  </body>
+</html>
