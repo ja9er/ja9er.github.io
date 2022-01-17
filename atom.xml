@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ja9er.github.io</id>
     <title>Ja9er&apos;s Studio</title>
-    <updated>2022-01-17T03:45:59.942Z</updated>
+    <updated>2022-01-17T03:48:03.257Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ja9er.github.io"/>
     <link rel="self" href="https://ja9er.github.io/atom.xml"/>
@@ -18,7 +18,7 @@
         <updated>2022-01-17T03:25:56.000Z</updated>
         <content type="html"><![CDATA[<h1 id="从验证码爆破开始的burp插件学习">从验证码爆破开始的burp插件学习</h1>
 <blockquote>
-<p>PS：仅仅作为学习,没什么用</p>
+<p>PS：仅仅作为学习,没什么用😃</p>
 </blockquote>
 <p>之前改了一个验证码爆破的burp插件。小改了其他师傅的代码。</p>
 <p>现在从头学习一下burp的插件开发，目标是实现在repeater模块的登录口自动更换实时验证码</p>
