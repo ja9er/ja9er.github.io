@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ja9er.github.io</id>
     <title>Ja9er&apos;s Studio</title>
-    <updated>2022-01-17T03:36:25.084Z</updated>
+    <updated>2022-01-17T03:37:25.463Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ja9er.github.io"/>
     <link rel="self" href="https://ja9er.github.io/atom.xml"/>
@@ -163,7 +163,7 @@ if __name__ == '__main__':
         <id>https://ja9er.github.io/post/RIelZKt8X/</id>
         <link href="https://ja9er.github.io/post/RIelZKt8X/">
         </link>
-        <updated>2022-01-17T03:06:35.000Z</updated>
+        <updated>2022-01-14T03:06:35.000Z</updated>
         <content type="html"><![CDATA[<h1 id="从ocr库联动burp验证码爆破">从OCR库联动burp验证码爆破</h1>
 <h2 id="ocr库选择">OCR库选择</h2>
 <p>这里直接选择DDDDOCR这个库，非常好用</p>
