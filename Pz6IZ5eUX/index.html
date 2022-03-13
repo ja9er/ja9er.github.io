@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="initial-scale=1.0,user-scalable=no,minimal-ui" />
+    <title>python 协程async学习 | Ja9er&#39;s Studio</title>
+<link rel='stylesheet' id='puma-css'  href='https://ja9er.github.io/styles/main.css' type='text/css' media='screen' />
+<link rel='stylesheet' id='puma-css'  href='https://at.alicdn.com/t/font_1306644_jwtuc2zzbrd.css' media='screen' />
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<script type='text/javascript' src='https://ja9er.github.io/media/scripts/jquery.js'></script>
+<script type='text/javascript' src='https://ja9er.github.io/media/scripts/jquery-migrate.min.js'></script>
+        <script src="https://cdn.bootcss.com/highlight.js/9.15.10/highlight.min.js"></script>
+         <script >hljs.initHighlightingOnLoad();</script>
+         
+</head>
+<body class="single single-post postid-3788 single-format-standard">
+	<!--加入跟随滑动的顶部-->
+	<header id="masthead" class="site-header" role="banner">
+		<div class="site-branding">
+			<h1 class="site-title">
+				<a href="https://ja9er.github.io" title="Ja9er&#39;s Studio">Ja9er&#39;s Studio</a>
+				
+			</h1>
+		</div>
+
+		<a class="primary-nav-trigger" href="javascript:void(0)">
+			<span class="menu-icon"></span>
+		</a>
+		
+	</header>
+		<div class="site-navigation-wrapper">
+		<nav id="site-navigation" class="main-navigation" role="navigation">
+			<ul class="primary-nav">
+                    
+				<li id="menu-item-30" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30"><a title="首页" href="/">首页</a></li>
+                
+				<li id="menu-item-30" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30"><a title="归档" href="/archives">归档</a></li>
+                
+				<li id="menu-item-30" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30"><a title="标签" href="/tags">标签</a></li>
+                
+				<li id="menu-item-30" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30"><a title="关于" href="/post/about">关于</a></li>
+                
+	
+			</ul>
+		</nav>			
+	</div>
+	<!--跟随滑动的顶部结束-->
+	<div class="surface-content">    <main class="main-content">
+        <section class="section-body">
+                            <header class="section-header u-textAlignCenter">
+                    <h2 class="grap--h2">python 协程async学习</h2>
+                    <div class="block-postMetaWrap">
+                        <time>2022-03-13</time>
+                    </div>
+                </header>
+                <div class="grap">
+					
+					<blockquote>
+<p>本人环境 PY3.7.6</p>
+</blockquote>
+<p>首先上一段代码</p>
+<pre><code class="language-python">import asyncio
+
+async def main():
+    print(&quot;hello&quot;)
+    await asyncio.sleep(1)
+    print(&quot;world&quot;)
+test = main()
+</code></pre>
+<p>直接运行这段代码只会产生warning，既没有hello也没有world</p>
+<blockquote>
+<p>sys:1: RuntimeWarning: coroutine 'main' was never awaited</p>
+</blockquote>
+<p>为什么呢?因为</p>
+<p><strong>async def 定义了一个coroutine function,调用所有的coroutine function只会返回一个coroutine obj。不会运行coroutine中的代码</strong></p>
+<p>如果要运行coroutine function。需要两个条件。</p>
+<ol>
+<li>进入async模式</li>
+<li>将coroutine变成task</li>
+</ol>
+<p>进入async模式即为使用event loop方式控制程序，所谓的event loop可以理解为一个管理装置，可以管理所有task的运行，它的管理是被动式的，需要task告诉event loop<code>我在干什么</code>。</p>
+<p>使用方式为如下函数</p>
+<pre><code class="language-python">asyncio.run()#参数为一个coroutine
+</code></pre>
+<p>该函数干的事情有两件</p>
+<ol>
+<li>建立event loop</li>
+<li>将coroutine转换为task</li>
+</ol>
+<p>event loop 建立成功后就会寻找可使用的task执行</p>
+<p>所以修改代码为如下即可执行main中的print函数</p>
+<pre><code class="language-python">import asyncio
+async def main():
+    print(&quot;hello&quot;)
+    await asyncio.sleep(1)
+    print(&quot;world&quot;)
+test = main()
+asyncio.run(test)
+</code></pre>
+<h2 id="运行多task">运行多task</h2>
+<p>还是先上代码</p>
+<pre><code class="language-python">import asyncio
+import time
+
+async def hello(delay, what):
+    await asyncio.sleep(delay)
+    print(what)
+
+async def main():
+    print(f'started at {time.strftime(&quot;%H:%M:%S&quot;)}')
+    await hello(1, 'hello')
+    await hello(2, 'world')
+    print(f'finshed at {time.strftime(&quot;%H:%M:%S&quot;)}')
+
+test = main()
+asyncio.run(test)
+</code></pre>
+<p>运行后我们发现运行时间依旧是3秒钟，并没有起到我们所希望的&quot;并发执行&quot;的效果</p>
+<figure data-type="image" tabindex="1"><a href="https://imgtu.com/i/bqm0JS"><img src="https://s1.ax1x.com/2022/03/13/bqm0JS.png" alt="bqm0JS.png" loading="lazy"></a></figure>
+<p>先回归代码本身，看hello()函数。</p>
+<p>经过上面的学习我们已经了解到了,hello被async def定义为一个coroutine函数。而在hello函数中，asyncio.sleep()所返回的值也是一个coroutine OBJ。这就涉及到第一个将coroutine转换为task的方法。</p>
+<h3 id="await"><strong>await</strong></h3>
+<p>await将asyncio.sleep()的返回值包装成task类型，然后向event loop声明。接着它会向event loop声明，当前这个task会等待到hello这个task完成之后才能继续执行。最后会yield  <em>(yield可以粗略的理解为return)</em>  出去，也就是告诉event loop，目前执行的task暂时完成不了，你可以调度其他的task执行了。最后当event loop再次调度它执行的时候，就可以拿出返回值了。</p>
+<p>讲到这里，为什么没有我们想要的效果也很清楚了。</p>
+<p>整个程序的执行过程是这样的</p>
+<blockquote>
+<ol>
+<li>
+<p>asyncio.run -将main作为task放到event loop中执行</p>
+</li>
+<li>
+<p>main执行，打印开始时间</p>
+</li>
+<li>
+<p>执行hello(1,&quot;hello&quot;),返回一个coroutine obj,await将此coroutine OBJ转换为 task,放入event loop 中，声明需要等待他完成</p>
+</li>
+<li>
+<p>event loop此时存在两个task，main和hello,main无法执行需要等待hello，hello中又存在asyncio.sleep。又需要等待此sleep执行</p>
+</li>
+<li>
+<p>此时存在三个task,main,hello和sleep。event loop 于是等待sleep执行完毕。再执行hello(1,&quot;hello&quot;)，此时打印hello。最后才到main</p>
+</li>
+</ol>
+</blockquote>
+<p><strong>event loop调度task的前提是有其他task存在，而程序执行到await hello(1,&quot;hello&quot;)的时候就卡主了，此时hell(2,&quot;world&quot;)并没有被执行，也就没有第二个task可以供event loop调度</strong></p>
+<p>综上所述，其实就是因为await要做的事情太多没能及时注册task。</p>
+<p>所以async给出了专门注册task的函数</p>
+<h3 id="create_task函数">create_task函数</h3>
+<pre><code class="language-python">asyncio.create_task(coro)
+</code></pre>
+<p>将coroutine 转换为task,并且注册到event loop中。</p>
+<p>根据上文提到的思想，我们只要将task率先注册即可。也就是如下代码</p>
+<pre><code class="language-python">import asyncio
+import time
+
+async def hello(delay, what):
+    await asyncio.sleep(delay)
+    print(what)
+
+async def main():
+    task1 = asyncio.create_task(hello(1, 'hello'))
+    task2 = asyncio.create_task(hello(2, 'world'))
+    print(f'started at {time.strftime(&quot;%H:%M:%S&quot;)}')
+    await task1
+    await task2
+    print(f'finshed at {time.strftime(&quot;%H:%M:%S&quot;)}')
+
+
+test = main()
+asyncio.run(test)
+
+</code></pre>
+<p>当await 后不再是coroutine而是task时，他的功能为交还控制权且返回值。不再转换coroutine</p>
+<p>得到结果</p>
+<figure data-type="image" tabindex="2"><a href="https://imgtu.com/i/bqmsMj"><img src="https://s1.ax1x.com/2022/03/13/bqmsMj.png" alt="bqmsMj.png" loading="lazy"></a></figure>
+<p>若要获取返回值，变量 = await task。不使用await拿不到返回值</p>
+<pre><code class="language-python">import asyncio
+import time
+
+
+async def hello(delay, what):
+    await asyncio.sleep(delay)
+    return f&quot;{what}-{delay}&quot;
+
+
+async def main():
+    task1 = asyncio.create_task(hello(1, 'hello'))
+    task2 = asyncio.create_task(hello(2, 'world'))
+    print(f'started at {time.strftime(&quot;%H:%M:%S&quot;)}')
+    res1 = await task1
+    res2 = await task2
+    print(res1)
+    print(res2)
+    print(f'finshed at {time.strftime(&quot;%H:%M:%S&quot;)}')
+test = main()
+asyncio.run(test)
+</code></pre>
+<h3 id="gather函数">gather函数</h3>
+<p>当有很多task时，一个一个await并不方便。asyncio.gather()比较方便</p>
+<pre><code>asyncio.gather()
+</code></pre>
+<p>返回一个future，参数为coroutine或task或future。</p>
+<p>若 参数为coroutine会首先包装成task注册到event loop中，且申明需要等待参数中的所有coroutine执行完毕才可继续，且会把task的return值放入list中</p>
+<pre><code class="language-python">import asyncio
+import time
+
+async def hello(delay, what):
+    await asyncio.sleep(delay)
+    return f&quot;{what}-{delay}&quot;
+async def main():
+    task1 = asyncio.create_task(hello(1, 'hello'))
+    task2 = asyncio.create_task(hello(2, 'world'))
+    print(f'started at {time.strftime(&quot;%H:%M:%S&quot;)}')
+    res = await asyncio.gather(task1, task2)
+    print(res)
+    print(f'finshed at {time.strftime(&quot;%H:%M:%S&quot;)}')
+    
+test = main()
+asyncio.run(test)
+
+</code></pre>
+<p>得到结果</p>
+<figure data-type="image" tabindex="3"><a href="https://imgtu.com/i/bqm6Ln"><img src="https://s1.ax1x.com/2022/03/13/bqm6Ln.png" alt="bqm6Ln.png" loading="lazy"></a></figure>
+
+                </div>
+
+                <div class="post--keywords" itemprop="keywords">
+					 <a href="https://ja9er.github.io/tag/zLJVRFMjd/" class="post--keyword" data-title="代码学习" data-type="post_tag" data-term-id="39">代码学习</a>           </div>
+
+
+
+                      </section>
+    </main>
+</div>
+	<footer class="site-footer u-textAlignCenter">
+    	<div class="footer-branding">
+            <a href="https://ja9er.github.io" title="Ja9er&#39;s Studio">Ja9er&#39;s Studio</a>
+									
+			         </div>
+		 <hr />
+		 <div class="social-links">
+		                       
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+				</div>
+        <div class="footer-copy">
+                
+        </div>
+
+    </footer>
+	<div class="back-to-top u-hide" onclick="backToTop();"><i class="iconfont icon-xiangshang"></i></div>
+
+<script type='text/javascript' src='https://ja9er.github.io/media/scripts/main.js'></script>
+</body>
+</html>

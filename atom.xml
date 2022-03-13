@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ja9er.github.io</id>
     <title>Ja9er&apos;s Studio</title>
-    <updated>2022-01-26T09:29:51.756Z</updated>
+    <updated>2022-03-13T08:27:56.245Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ja9er.github.io"/>
     <link rel="self" href="https://ja9er.github.io/atom.xml"/>
@@ -10,6 +10,13 @@
     <logo>https://ja9er.github.io/images/avatar.png</logo>
     <icon>https://ja9er.github.io/favicon.ico</icon>
     <rights>All rights reserved 2022, Ja9er&apos;s Studio</rights>
+    <entry>
+        <title type="html"><![CDATA[python 协程async学习]]></title>
+        <id>https://ja9er.github.io/Pz6IZ5eUX/</id>
+        <link href="https://ja9er.github.io/Pz6IZ5eUX/">
+        </link>
+        <updated>2022-03-13T08:23:19.000Z</updated>
+    </entry>
     <entry>
         <title type="html"><![CDATA[从验证码爆破开始的burp插件学习]]></title>
         <id>https://ja9er.github.io/IX1z9lGDP/</id>
@@ -107,17 +114,6 @@
         <summary type="html"><![CDATA[<p>之前写的小玩意儿。放出来康康</p>
 ]]></summary>
         <content type="html"><![CDATA[<p>之前写的小玩意儿。放出来康康</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[从TPshopcms到GetShell]]></title>
-        <id>https://ja9er.github.io/cong-tpshopcms-dao-getshell1/</id>
-        <link href="https://ja9er.github.io/cong-tpshopcms-dao-getshell1/">
-        </link>
-        <updated>2021-07-05T10:00:27.000Z</updated>
-        <summary type="html"><![CDATA[<p>bypass php</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>bypass php</p>
 ]]></content>
     </entry>
 </feed>
