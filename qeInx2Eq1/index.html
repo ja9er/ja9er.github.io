@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="initial-scale=1.0,user-scalable=no,minimal-ui" />
+    <title>记一次从binwalk解包开始的RCE | Ja9er&#39;s Studio</title>
+<link rel='stylesheet' id='puma-css'  href='https://ja9er.github.io/styles/main.css' type='text/css' media='screen' />
+<link rel='stylesheet' id='puma-css'  href='https://at.alicdn.com/t/font_1306644_jwtuc2zzbrd.css' media='screen' />
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<script type='text/javascript' src='https://ja9er.github.io/media/scripts/jquery.js'></script>
+<script type='text/javascript' src='https://ja9er.github.io/media/scripts/jquery-migrate.min.js'></script>
+        <script src="https://cdn.bootcss.com/highlight.js/9.15.10/highlight.min.js"></script>
+         <script >hljs.initHighlightingOnLoad();</script>
+         
+</head>
+<body class="single single-post postid-3788 single-format-standard">
+	<!--加入跟随滑动的顶部-->
+	<header id="masthead" class="site-header" role="banner">
+		<div class="site-branding">
+			<h1 class="site-title">
+				<a href="https://ja9er.github.io" title="Ja9er&#39;s Studio">Ja9er&#39;s Studio</a>
+				
+			</h1>
+		</div>
+
+		<a class="primary-nav-trigger" href="javascript:void(0)">
+			<span class="menu-icon"></span>
+		</a>
+		
+	</header>
+		<div class="site-navigation-wrapper">
+		<nav id="site-navigation" class="main-navigation" role="navigation">
+			<ul class="primary-nav">
+                    
+				<li id="menu-item-30" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30"><a title="首页" href="/">首页</a></li>
+                
+				<li id="menu-item-30" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30"><a title="归档" href="/archives">归档</a></li>
+                
+				<li id="menu-item-30" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30"><a title="标签" href="/tags">标签</a></li>
+                
+				<li id="menu-item-30" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30"><a title="关于" href="/post/about">关于</a></li>
+                
+	
+			</ul>
+		</nav>			
+	</div>
+	<!--跟随滑动的顶部结束-->
+	<div class="surface-content">    <main class="main-content">
+        <section class="section-body">
+                            <header class="section-header u-textAlignCenter">
+                    <h2 class="grap--h2">记一次从binwalk解包开始的RCE</h2>
+                    <div class="block-postMetaWrap">
+                        <time>2022-07-01</time>
+                    </div>
+                </header>
+                <div class="grap">
+					
+					<h2 id="0x001">0X001</h2>
+<p>在坛子里看到某设备的未授权和RCE预警，以及带头老大哥说的后台充满了RCE。对于一个写了快一个月文书工作的菜比来说，这能忍？</p>
+<p>于是打开FOFA，开始愉(man)快(chang)的挖洞之旅...</p>
+<h2 id="0x002">0X002</h2>
+<p>根据老大哥发的指纹信息</p>
+<blockquote>
+<p>body=&quot;cgi-bin/luci&quot; &amp;&amp; body=&quot;#f47f3e&quot;</p>
+</blockquote>
+<p>可以轻松的找到数千台设备。先上PY脚本跑一跑未授权，毕竟一个首页是挖不出什么东西的。根据未授权的信息随便选一个站。</p>
+<p>进去之后长这样:<br>
+<img src="http://fastly.jsdelivr.net/gh/ja9er/blogimage@main/img/image-20220701144844646.png" alt="" loading="lazy"></p>
+<p>RCE肯定首选ping  traceroute nslookup 三兄弟。可惜的是这里并不起任何作用。</p>
+<figure data-type="image" tabindex="1"><img src="http://fastly.jsdelivr.net/gh/ja9er/blogimage@main/img/image-20220701145024342.png" alt="" loading="lazy"></figure>
+<p>这时候发现该web一直在提示系统版本老旧需要升级，遂在系统设置的系统升级功能处下获取升级包。解包之后看到了我们需要的东西，一个bin文件。</p>
+<figure data-type="image" tabindex="2"><img src="http://fastly.jsdelivr.net/gh/ja9er/blogimage@main/img/image-20220701145522277.png" alt="" loading="lazy"></figure>
+<p>拖到kali，使用binwalk -e 顺利提取文件。甚至都不带加密的。</p>
+<figure data-type="image" tabindex="3"><img src="http://fastly.jsdelivr.net/gh/ja9er/blogimage@main/img/image-20220701145614624.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="http://fastly.jsdelivr.net/gh/ja9er/blogimage@main/img/image-20220701145631484-16566585926451-16566585930752.png" alt="" loading="lazy"></figure>
+<p>如图所示文件夹下，可获取web所需的所有文件。用sublime打开文件夹，开始手动审计。</p>
+<p>首先最重要的是获取路由模块，翻查文件后可获取该模块位于\squashfs-root\usr\lib\lua\luci\controller\eweb路径下的API.lua文件中。</p>
+<p>根据之前访问web的路径猜测，路由器的路由分配由lua脚本中给每个路径分配一个函数，然后在函数中import对应模块的lua脚本</p>
+<figure data-type="image" tabindex="5"><img src="http://fastly.jsdelivr.net/gh/ja9er/blogimage@main/img/image-20220701150015058.png" alt="" loading="lazy"></figure>
+<p>import 进来的模块下的函数可被直接调用。</p>
+<p>如上图，则可认为/api/auth路径下可使用 luci/modules/noauth.lua中的函数。也就是已经发过RCE的那个文件中的函数,调用方式如下：</p>
+<figure data-type="image" tabindex="6"><img src="http://fastly.jsdelivr.net/gh/ja9er/blogimage@main/img/image-20220701152328938.png" alt="" loading="lazy"></figure>
+<h2 id="0x003">0x003</h2>
+<p>获取到路由后，sublime 进行一个正则的**\.\.(.*)\.\.**找，获取到switch.lua脚本中的这段</p>
+<figure data-type="image" tabindex="7"><img src="http://fastly.jsdelivr.net/gh/ja9er/blogimage@main/img/image-20220701153414174.png" alt="" loading="lazy"></figure>
+<p>已经显而易见了。</p>
+<p>一个无回显的命令执行，结果如下。</p>
+<figure data-type="image" tabindex="8"><img src="http://fastly.jsdelivr.net/gh/ja9er/blogimage@main/img/image-20220701154213035.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="9"><img src="http://fastly.jsdelivr.net/gh/ja9er/blogimage@main/img/image-20220701154230680.png" alt="" loading="lazy"></figure>
+<p>binwalk的初体验还不错:）。</p>
+
+                </div>
+
+                <div class="post--keywords" itemprop="keywords">
+					          </div>
+
+
+
+                      </section>
+    </main>
+</div>
+	<footer class="site-footer u-textAlignCenter">
+    	<div class="footer-branding">
+            <a href="https://ja9er.github.io" title="Ja9er&#39;s Studio">Ja9er&#39;s Studio</a>
+									
+			         </div>
+		 <hr />
+		 <div class="social-links">
+		                       
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+				</div>
+        <div class="footer-copy">
+                
+        </div>
+
+    </footer>
+	<div class="back-to-top u-hide" onclick="backToTop();"><i class="iconfont icon-xiangshang"></i></div>
+
+<script type='text/javascript' src='https://ja9er.github.io/media/scripts/main.js'></script>
+</body>
+</html>

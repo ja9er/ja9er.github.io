@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ja9er.github.io</id>
     <title>Ja9er&apos;s Studio</title>
-    <updated>2022-03-14T04:31:17.882Z</updated>
+    <updated>2022-07-01T08:38:35.586Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ja9er.github.io"/>
     <link rel="self" href="https://ja9er.github.io/atom.xml"/>
@@ -10,6 +10,13 @@
     <logo>https://ja9er.github.io/images/avatar.png</logo>
     <icon>https://ja9er.github.io/favicon.ico</icon>
     <rights>All rights reserved 2022, Ja9er&apos;s Studio</rights>
+    <entry>
+        <title type="html"><![CDATA[记一次从binwalk解包开始的RCE]]></title>
+        <id>https://ja9er.github.io/qeInx2Eq1/</id>
+        <link href="https://ja9er.github.io/qeInx2Eq1/">
+        </link>
+        <updated>2022-07-01T07:47:25.000Z</updated>
+    </entry>
     <entry>
         <title type="html"><![CDATA[python 协程async学习]]></title>
         <id>https://ja9er.github.io/Pz6IZ5eUX/</id>
@@ -103,17 +110,6 @@
         <summary type="html"><![CDATA[<p>基于websocket的学习</p>
 ]]></summary>
         <content type="html"><![CDATA[<p>基于websocket的学习</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[(CVE-2021-3378) FortiLogger 任意用户创建 POC]]></title>
-        <id>https://ja9er.github.io/cve-2021-3378-fortilogger-ren-yi-yong-hu-chuang-jian-poc/</id>
-        <link href="https://ja9er.github.io/cve-2021-3378-fortilogger-ren-yi-yong-hu-chuang-jian-poc/">
-        </link>
-        <updated>2021-07-05T13:01:55.000Z</updated>
-        <summary type="html"><![CDATA[<p>之前写的小玩意儿。放出来康康</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>之前写的小玩意儿。放出来康康</p>
 ]]></content>
     </entry>
 </feed>
