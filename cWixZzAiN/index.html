@@ -3,7 +3,7 @@
 	<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="initial-scale=1.0,user-scalable=no,minimal-ui" />
-    <title>Ja9er&#39;s Studio</title>
+    <title>NPS 鉴权绕过 简单分析 | Ja9er&#39;s Studio</title>
 <link rel='stylesheet' id='puma-css'  href='https://ja9er.github.io/styles/main.css' type='text/css' media='screen' />
 <link rel='stylesheet' id='puma-css'  href='https://at.alicdn.com/t/font_1306644_jwtuc2zzbrd.css' media='screen' />
  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
@@ -13,9 +13,9 @@
          <script >hljs.initHighlightingOnLoad();</script>
          
 </head>
-<body class="page page-id-14 page-template page-template-tpl page-template-tpl-archive page-template-tpltpl-archive-php">
+<body class="single single-post postid-3788 single-format-standard">
 	<!--加入跟随滑动的顶部-->
-<header id="masthead" class="site-header" role="banner">
+	<header id="masthead" class="site-header" role="banner">
 		<div class="site-branding">
 			<h1 class="site-title">
 				<a href="https://ja9er.github.io" title="Ja9er&#39;s Studio">Ja9er&#39;s Studio</a>
@@ -28,7 +28,7 @@
 		</a>
 		
 	</header>
-	<div class="site-navigation-wrapper">
+		<div class="site-navigation-wrapper">
 		<nav id="site-navigation" class="main-navigation" role="navigation">
 			<ul class="primary-nav">
                     
@@ -48,149 +48,36 @@
 	<div class="surface-content">    <main class="main-content">
         <section class="section-body">
                             <header class="section-header u-textAlignCenter">
-                    <h2 class="grap--h2">文章归档</h2>
+                    <h2 class="grap--h2">NPS 鉴权绕过 简单分析</h2>
+                    <div class="block-postMetaWrap">
+                        <time>2022-08-08</time>
+                    </div>
                 </header>
-                        <div class="fancy-archive">
-								
-								
-			<h3 class="archive-year">2022</h3>
-								
-      
-			<ul class="fancy-ul">
+                <div class="grap">
+					
+					<p>POC出处<br>
+https://github.com/0xf4n9x/NPS-AUTH-BYPASS</p>
+<p>fofa:</p>
+<blockquote>
+<p>body=&quot;serializeArray()&quot; &amp;&amp; body=&quot;/login/verify&quot;</p>
+</blockquote>
+<p>可以看到POC是直接加了俩字段，然后就能进首页了。效果如下：</p>
+<figure data-type="image" tabindex="1"><a href="https://imgloc.com/i/05aBX"><img src="https://s1.328888.xyz/2022/08/08/05aBX.png" alt="05aBX.png" loading="lazy"></a></figure>
+<p>去github上把nps源码下下来，发现用beego写的。翻找了一下发现在漏洞点web/controllers/base.go<br>
+也就是下面四行:</p>
+<figure data-type="image" tabindex="2"><a href="https://imgloc.com/i/05Gd6"><img src="https://s1.328888.xyz/2022/08/08/05Gd6.png" alt="05Gd6.png" loading="lazy"></a></figure>
+<p>可以看到md5Key和timestamp都是获取的参数，configKey是从conf/nps.conf中获取的，但是默认被注释掉了，也就是没有。</p>
+<figure data-type="image" tabindex="3"><a href="https://imgloc.com/i/05wtP"><img src="https://s1.328888.xyz/2022/08/08/05wtP.png" alt="05wtP.png" loading="lazy"></a></figure>
+<p>接着算了下时间戳和传入的timestamp的绝对值和configKey+时间戳的MD5值。能通过的话就赋值session的isAdmin为true。</p>
 
-				<li><a href="https://ja9er.github.io/cWixZzAiN/">NPS 鉴权绕过 简单分析</a> <em>2022-08-08</em></li>
-				
-			</ul>
-			
-			
-      
-			<ul class="fancy-ul">
+                </div>
 
-				<li><a href="https://ja9er.github.io/qeInx2Eq1/">记一次从binwalk解包开始的RCE</a> <em>2022-07-01</em></li>
-				
-			</ul>
-			
-			
-      
-			<ul class="fancy-ul">
+                <div class="post--keywords" itemprop="keywords">
+					          </div>
 
-				<li><a href="https://ja9er.github.io/Pz6IZ5eUX/">python 协程async学习</a> <em>2022-03-13</em></li>
-				
-			</ul>
-			
-			
-      
-			<ul class="fancy-ul">
 
-				<li><a href="https://ja9er.github.io/IX1z9lGDP/">从验证码爆破开始的burp插件学习</a> <em>2022-01-17</em></li>
-				
-			</ul>
-			
-			
-      
-			<ul class="fancy-ul">
 
-				<li><a href="https://ja9er.github.io/RIelZKt8X/">从OCR库联动burp验证码爆破</a> <em>2022-01-14</em></li>
-				
-			</ul>
-			
-			
-      
-			<ul class="fancy-ul">
-
-				<li><a href="https://ja9er.github.io/tomcat-nei-cun-ma-xue-xi/">Tomcat 内存马学习</a> <em>2022-01-06</em></li>
-				
-			</ul>
-			
-			
-      
-			
-      
-			
-      
-			
-      
-			
-      
-			
-      
-			
-      
-			
-  
-			<h3 class="archive-year">2021</h3>
-								
-      
-			
-      
-			
-      
-			
-      
-			
-      
-			
-      
-			
-      
-			<ul class="fancy-ul">
-
-				<li><a href="https://ja9er.github.io/spring-controller-nei-cun-ma/">Spring controller 内存马</a> <em>2021-12-24</em></li>
-				
-			</ul>
-			
-			
-      
-			<ul class="fancy-ul">
-
-				<li><a href="https://ja9er.github.io/log4j-nian-qing-ren-de-di-yi-ci-yan-jiu/">Log4j2探究</a> <em>2021-12-20</em></li>
-				
-			</ul>
-			
-			
-      
-			<ul class="fancy-ul">
-
-				<li><a href="https://ja9er.github.io/cmseasy-cong-hei-he-dao-dai-ma-shen-ji/">CMSEASY-从黑盒到代码审计</a> <em>2021-09-22</em></li>
-				
-			</ul>
-			
-			
-      
-			<ul class="fancy-ul">
-
-				<li><a href="https://ja9er.github.io/cong-lou-dong-yu-jing-dao-poc-shi-xian/">从漏洞预警到POC实现</a> <em>2021-08-12</em></li>
-				
-			</ul>
-			
-			
-      
-			<ul class="fancy-ul">
-
-				<li><a href="https://ja9er.github.io/yi-ci-cong-wei-shou-quan-kai-shi-de-yan-jiu/">一次从未授权开始的研究</a> <em>2021-07-06</em></li>
-				
-			</ul>
-			
-			
-      
-			<ul class="fancy-ul">
-
-				<li><a href="https://ja9er.github.io/cve-2021-3378-fortilogger-ren-yi-yong-hu-chuang-jian-poc/">(CVE-2021-3378) FortiLogger 任意用户创建 POC</a> <em>2021-07-05</em></li>
-				
-			</ul>
-			
-			
-      
-			<ul class="fancy-ul">
-
-				<li><a href="https://ja9er.github.io/cong-tpshopcms-dao-getshell1/">从TPshopcms到GetShell</a> <em>2021-07-05</em></li>
-				
-			</ul>
-			
-			
-  
-                        </div>
-			</section>
+                      </section>
     </main>
 </div>
 	<footer class="site-footer u-textAlignCenter">

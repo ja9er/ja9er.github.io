@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ja9er.github.io</id>
     <title>Ja9er&apos;s Studio</title>
-    <updated>2022-07-01T09:23:55.813Z</updated>
+    <updated>2022-08-08T09:19:06.938Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ja9er.github.io"/>
     <link rel="self" href="https://ja9er.github.io/atom.xml"/>
@@ -10,6 +10,13 @@
     <logo>https://ja9er.github.io/images/avatar.png</logo>
     <icon>https://ja9er.github.io/favicon.ico</icon>
     <rights>All rights reserved 2022, Ja9er&apos;s Studio</rights>
+    <entry>
+        <title type="html"><![CDATA[NPS 鉴权绕过 简单分析]]></title>
+        <id>https://ja9er.github.io/cWixZzAiN/</id>
+        <link href="https://ja9er.github.io/cWixZzAiN/">
+        </link>
+        <updated>2022-08-08T09:12:57.000Z</updated>
+    </entry>
     <entry>
         <title type="html"><![CDATA[记一次从binwalk解包开始的RCE]]></title>
         <id>https://ja9er.github.io/qeInx2Eq1/</id>
@@ -99,17 +106,6 @@
         <summary type="html"><![CDATA[<p>怎么从CNVD中找漏洞</p>
 ]]></summary>
         <content type="html"><![CDATA[<p>怎么从CNVD中找漏洞</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[一次从未授权开始的研究]]></title>
-        <id>https://ja9er.github.io/yi-ci-cong-wei-shou-quan-kai-shi-de-yan-jiu/</id>
-        <link href="https://ja9er.github.io/yi-ci-cong-wei-shou-quan-kai-shi-de-yan-jiu/">
-        </link>
-        <updated>2021-07-06T10:02:30.000Z</updated>
-        <summary type="html"><![CDATA[<p>基于websocket的学习</p>
-]]></summary>
-        <content type="html"><![CDATA[<p>基于websocket的学习</p>
 ]]></content>
     </entry>
 </feed>
